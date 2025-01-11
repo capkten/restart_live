@@ -1,0 +1,32 @@
+# Logs
+/restart_live_web/logs
+/restart_live_web/*.log
+/restart_live_web/npm-debug.log*
+/restart_live_web/yarn-debug.log*
+/restart_live_web/yarn-error.log*
+/restart_live_web/pnpm-debug.log*
+/restart_live_web/lerna-debug.log*
+
+/restart_live_web/node_modules
+/restart_live_web/.DS_Store
+/restart_live_web/dist
+/restart_live_web/dist-ssr
+/restart_live_web/coverage
+/restart_live_web/*.local
+
+/restart_live_web/cypress/videos/
+/restart_live_web/cypress/screenshots/
+
+# Editor directories and files
+/restart_live_web/.vscode/*
+!.vscode/extensions.json
+/restart_live_web/.idea
+/restart_live_web/*.suo
+/restart_live_web/*.ntvs*
+/restart_live_web/*.njsproj
+/restart_live_web/*.sln
+/restart_live_web/*.sw?
+
+/restart_live_web/*.tsbuildinfo
+
+/restart_live_backend/.idea
