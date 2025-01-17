@@ -16,6 +16,8 @@ Restart your life, say goodbye to the past, adhere to self-discipline, and chang
 - [ ] 人生清单
 - [ ] 关卡boss
 - [ ] 通过语音和LLM操作
+- [ ] 记账功能
+- [ ] 项目管理功能
 - [ ] 更多...
 
 ## TODO_WEB_EN
@@ -28,4 +30,6 @@ Restart your life, say goodbye to the past, adhere to self-discipline, and chang
 - [ ] Life list
 - [ ] Level boss
 - [ ] Operated by voice and LLM
+- [ ] Accounting function
+- [ ] Project management capabilities
 - [ ] More...
