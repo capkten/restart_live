@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+        PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<generatorConfiguration>
+    <context id="MyBatis3" targetRuntime="MyBatis3">
+        <property name="useActualColumnNames" value="false"/>
+        <jdbcConnection driverClass="org.postgresql.Driver"
+                        connectionURL="jdbc:postgresql://123.60.89.0:15432/restart_live"
+                        userId="postgres"
+                        password="2366restart_live"/>
+        <javaModelGenerator targetPackage="org.capten.live.model" targetProject="src/main/java"/>
+        <sqlMapGenerator targetPackage="org.capten.live.mapper" targetProject="src/main/resources"/>
+        <javaClientGenerator type="XMLMAPPER" targetPackage="org.capten.live.mapper" targetProject="src/main/java"/>
+        <table schema="public" tableName="%"/>
+    </context>
+</generatorConfiguration>
