@@ -20,4 +20,9 @@ public class UsersDao {
         List<Users> users = usersMapper.selectByExample(usersExample);
         return users.getFirst();
     }
+
+    public boolean registerUser(Users user) {
+        int i = usersMapper.insertSelective(user);
+        return i > 0;
+    }
 }

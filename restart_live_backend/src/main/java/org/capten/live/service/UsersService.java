@@ -10,4 +10,6 @@ public interface UsersService {
      * @return
      */
     public ServiceResDto login(String username, String password);
+
+    public ServiceResDto register(String username, String password);
 }

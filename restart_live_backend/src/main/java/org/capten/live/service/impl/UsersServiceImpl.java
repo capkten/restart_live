@@ -1,5 +1,6 @@
 package org.capten.live.service.impl;
 
+import cn.hutool.core.date.DateTime;
 import cn.hutool.crypto.SecureUtil;
 import lombok.AllArgsConstructor;
 import org.capten.live.dao.UsersDao;
@@ -10,6 +11,7 @@ import org.capten.live.service.UsersService;
 import org.capten.live.service.bo.UsersBo;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.NoSuchElementException;
 
 @Service
@@ -41,6 +43,27 @@ public class UsersServiceImpl implements UsersService {
             }
         } catch (NoSuchElementException e) {
             return new ServiceResDto(UsersBo.LOGIN_USER_NOT_FOUND, null);
+        }
+    }
+
+    @Override
+    public ServiceResDto register(String username, String password) {
+        // check if the user exists
+        if (usersBo.checkUserExists(username)) {
+            return new ServiceResDto(UsersBo.REGISTER_USERNAME_IN, null);
+        }
+        // password encryption
+        password = usersBo.getEncryptedPassword(password);
+        // insert user
+        Users user = new Users();
+        user.setUsername(username);
+        user.setPassword(password);
+        user.setCreateTime(DateTime.now());
+        user.setUpdateTime(DateTime.now());
+        if (usersDao.registerUser(user)) {
+            return new ServiceResDto(UsersBo.REGISTER_SUCCESS, null);
+        } else {
+            return new ServiceResDto(UsersBo.REGISTER_FAIL, null);
         }
     }
 }

@@ -2,10 +2,13 @@ package org.capten.live.service.bo;
 
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.jwt.JWTUtil;
+import org.capten.live.dao.UsersDao;
+import org.capten.live.model.Users;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 @Component
 public class UsersBo {
@@ -14,9 +17,27 @@ public class UsersBo {
 
     public static final int LOGIN_USER_NOT_FOUND = 1;
 
+    public static final String LOGIN_USER_NOT_FOUND_MSG = "user not found";
+
     public static final int LOGIN_FAIL = 2;
 
+    public static final String LOGIN_FAIL_MSG = "password is wrong";
+
+    public static final int REGISTER_USERNAME_IN = 10;
+
+    public static final String REGISTER_USERNAME_IN_MSG = "username already exists";
+
+    public static final int REGISTER_SUCCESS = 11;
+
+    public static final String REGISTER_SUCCESS_MSG = "register success";
+
+    public static final int REGISTER_FAIL = 12;
+
+    public static final String REGISTER_FAIL_MSG = "register fail";
+
     private static final byte[] SECURITY_SALT = "capkin".getBytes();
+
+    private UsersDao usersDao;
 
     /**
      * get token
@@ -43,5 +64,14 @@ public class UsersBo {
      */
     public String getEncryptedPassword(String password) {
         return SecureUtil.sha1(password);
+    }
+
+    public boolean checkUserExists(String username) {
+        try {
+            usersDao.getUserInfoByUserName(username);
+            return true;
+        } catch (NoSuchElementException e) {
+            return false;
+        }
     }
 }
