@@ -1,39 +1,34 @@
 package org.capten.live.service.impl;
 
 import cn.hutool.core.date.DateTime;
-import cn.hutool.crypto.SecureUtil;
-import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.capten.live.dao.UsersDao;
 import org.capten.live.domain.dto.ServiceResDto;
-import org.capten.live.mapper.UsersMapper;
 import org.capten.live.model.Users;
 import org.capten.live.service.UsersService;
 import org.capten.live.service.bo.UsersBo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.NoSuchElementException;
+import java.util.UUID;
+import java.util.logging.Logger;
 
 @Service
-@AllArgsConstructor
 public class UsersServiceImpl implements UsersService {
 
+    @Autowired
     private UsersDao usersDao;
 
+    @Autowired
     private UsersBo usersBo;
 
-    /**
-     * login
-     *
-     * @param username
-     * @param password
-     * @return
-     */
+    private Logger log = Logger.getLogger(UsersServiceImpl.class.getName());
+
     @Override
     public ServiceResDto login(String username, String password) {
         try {
             Users user = usersDao.getUserInfoByUserName(username);
-            // password encryption
             password = usersBo.getEncryptedPassword(password);
             if (user.getPassword().equals(password)) {
                 String token = usersBo.getToken(username, password);
@@ -48,14 +43,12 @@ public class UsersServiceImpl implements UsersService {
 
     @Override
     public ServiceResDto register(String username, String password) {
-        // check if the user exists
         if (usersBo.checkUserExists(username)) {
             return new ServiceResDto(UsersBo.REGISTER_USERNAME_IN, null);
         }
-        // password encryption
         password = usersBo.getEncryptedPassword(password);
-        // insert user
         Users user = new Users();
+        user.setId(UUID.randomUUID());
         user.setUsername(username);
         user.setPassword(password);
         user.setCreateTime(DateTime.now());
@@ -64,6 +57,35 @@ public class UsersServiceImpl implements UsersService {
             return new ServiceResDto(UsersBo.REGISTER_SUCCESS, null);
         } else {
             return new ServiceResDto(UsersBo.REGISTER_FAIL, null);
+        }
+    }
+
+    @Override
+    public ServiceResDto getUserInfo(String token) {
+        String username = usersBo.getUserNameByToken(token);
+        Users users = usersDao.getUserInfoByUserName(username);
+        if (users == null) {
+            return new ServiceResDto(UsersBo.USER_NOT_FOUND, null);
+        } else {
+            return new ServiceResDto(UsersBo.USER_INFO_SUCCESS, users);
+        }
+    }
+
+    @Override
+    public ServiceResDto updatePassword(String username, String password, String token) {
+        String userNameByToken = usersBo.getUserNameByToken(token);
+        if (!userNameByToken.equals(username)) {
+            return new ServiceResDto(UsersBo.USER_CHANGE_PASSWORD_USERNAME_ERR, null);
+        } else {
+            password = usersBo.getEncryptedPassword(password);
+            Users users = usersDao.getUserInfoByUserName(username);
+            users.setPassword(password);
+            users.setUpdateTime(DateTime.now());
+            if (usersDao.updateUser(users)) {
+                return new ServiceResDto(UsersBo.USER_CHANGE_PASSWORD_SUCCESS, null);
+            } else {
+                return new ServiceResDto(UsersBo.USER_CHANGE_PASSWORD_FAIL, null);
+            }
         }
     }
 }

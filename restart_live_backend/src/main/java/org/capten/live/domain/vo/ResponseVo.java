@@ -28,4 +28,8 @@ public record ResponseVo(Integer code, String msg, Object data) {
         return new ResponseVo(500, msg, null);
     }
 
+    public static ResponseVo tokenError() {
+        return new ResponseVo(401, "token is invalid or expired", null);
+    }
+
 }

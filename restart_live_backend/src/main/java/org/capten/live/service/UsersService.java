@@ -12,4 +12,8 @@ public interface UsersService {
     public ServiceResDto login(String username, String password);
 
     public ServiceResDto register(String username, String password);
+
+    public ServiceResDto getUserInfo(String token);
+
+    public ServiceResDto updatePassword(String username, String password, String token);
 }

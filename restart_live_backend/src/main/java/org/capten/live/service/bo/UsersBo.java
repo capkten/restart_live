@@ -1,9 +1,12 @@
 package org.capten.live.service.bo;
 
 import cn.hutool.crypto.SecureUtil;
+import cn.hutool.jwt.JWT;
+import cn.hutool.jwt.JWTHeader;
 import cn.hutool.jwt.JWTUtil;
 import org.capten.live.dao.UsersDao;
 import org.capten.live.model.Users;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -35,8 +38,36 @@ public class UsersBo {
 
     public static final String REGISTER_FAIL_MSG = "register fail";
 
+    public static final String TOKEN_MSG = "Authorization";
+
     private static final byte[] SECURITY_SALT = "capkin".getBytes();
 
+    private static final String USERNAME_STR = "username";
+
+    private static final String PASSWORD_STR = "password";
+
+    private static final String EXPIRE_TIME_STR = "expire_time";
+
+    private static final Long EXPIRE_TIME = 1000 * 60 * 60 * 24 * 15L;
+
+    public static final int USER_NOT_FOUND = 1;
+
+    public static final int USER_INFO_SUCCESS = 0;
+
+    // update password code and msg
+    public static final int USER_CHANGE_PASSWORD_SUCCESS = 100;
+
+    public static final String USER_CHANGE_PASSWORD_SUCCESS_MSG = "change password success";
+
+    public static final int USER_CHANGE_PASSWORD_USERNAME_ERR = 101;
+
+    public static final String USER_CHANGE_PASSWORD_USERNAME_ERR_MSG = "username error";
+
+    public static final int USER_CHANGE_PASSWORD_FAIL = 102;
+
+    public static final String USER_CHANGE_PASSWORD_FAIL_MSG = "change password fail";
+
+    @Autowired
     private UsersDao usersDao;
 
     /**
@@ -49,9 +80,9 @@ public class UsersBo {
         Map<String, Object> map = new HashMap<String, Object>() {
             private static final long serialVersionUID = 1L;
             {
-                put("username", username);
-                put("password", password);
-                put("expire_time", System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 15);
+                put(USERNAME_STR, username);
+                put(PASSWORD_STR, password);
+                put(EXPIRE_TIME_STR, System.currentTimeMillis() + EXPIRE_TIME);
             }
         };
         return JWTUtil.createToken(map, SECURITY_SALT);
@@ -67,11 +98,30 @@ public class UsersBo {
     }
 
     public boolean checkUserExists(String username) {
+        Users users = usersDao.getUserInfoByUserName(username);
+        return users != null;
+    }
+
+    /**
+     * check token whether is valid and check time is expired
+     * @param token
+     * @return
+     */
+    public boolean checkToken(String token) {
         try {
-            usersDao.getUserInfoByUserName(username);
-            return true;
-        } catch (NoSuchElementException e) {
+            JWTUtil.verify(token, SECURITY_SALT);
+            final JWT jwt = JWTUtil.parseToken(token);
+            jwt.getHeader(JWTHeader.TYPE);
+            String payload = (String) jwt.getPayload(EXPIRE_TIME_STR);
+            return Long.parseLong(payload) >= System.currentTimeMillis();
+        } catch (Exception e) {
             return false;
         }
+    }
+
+    public String getUserNameByToken(String token) {
+        final JWT jwt = JWTUtil.parseToken(token);
+        jwt.getHeader(JWTHeader.TYPE);
+        return (String) jwt.getPayload(USERNAME_STR);
     }
 }
