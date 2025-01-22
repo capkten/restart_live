@@ -2,8 +2,10 @@ package org.capten.live.service.impl;
 
 import cn.hutool.core.date.DateTime;
 import lombok.extern.slf4j.Slf4j;
+import org.capten.live.dao.ConfigDao;
 import org.capten.live.dao.UsersDao;
 import org.capten.live.domain.dto.ServiceResDto;
+import org.capten.live.model.Config;
 import org.capten.live.model.Users;
 import org.capten.live.service.UsersService;
 import org.capten.live.service.bo.UsersBo;
@@ -22,6 +24,9 @@ public class UsersServiceImpl implements UsersService {
 
     @Autowired
     private UsersBo usersBo;
+
+    @Autowired
+    private ConfigDao configDao;
 
     private Logger log = Logger.getLogger(UsersServiceImpl.class.getName());
 
@@ -54,7 +59,11 @@ public class UsersServiceImpl implements UsersService {
         user.setCreateTime(DateTime.now());
         user.setUpdateTime(DateTime.now());
         if (usersDao.registerUser(user)) {
-            return new ServiceResDto(UsersBo.REGISTER_SUCCESS, null);
+            // create user config
+            if (configDao.createBaseConfig(user.getId())) {
+                return new ServiceResDto(UsersBo.REGISTER_SUCCESS, null);
+            }
+            return new ServiceResDto(UsersBo.REGISTER_FAIL, null);
         } else {
             return new ServiceResDto(UsersBo.REGISTER_FAIL, null);
         }
@@ -87,5 +96,16 @@ public class UsersServiceImpl implements UsersService {
                 return new ServiceResDto(UsersBo.USER_CHANGE_PASSWORD_FAIL, null);
             }
         }
+    }
+
+    @Override
+    public ServiceResDto getUserConfig(String token) {
+        String username = usersBo.getUserNameByToken(token);
+        Config config = configDao.getConfigByUserName(username);
+        log.info("getUserConfig: " + config.toString());
+        if (config == null) {
+            return new ServiceResDto(UsersBo.USER_NOT_FOUND, null);
+        }
+        return new ServiceResDto(UsersBo.USER_INFO_SUCCESS, config);
     }
 }

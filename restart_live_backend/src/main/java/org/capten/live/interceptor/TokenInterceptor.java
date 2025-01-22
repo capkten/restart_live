@@ -13,14 +13,19 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import java.util.logging.Logger;
+
 @Component
 @AllArgsConstructor
 public class TokenInterceptor implements HandlerInterceptor {
 
+    @Autowired
     private UsersBo usersBo;
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    private Logger log = Logger.getLogger(TokenInterceptor.class.getName());
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -35,6 +40,7 @@ public class TokenInterceptor implements HandlerInterceptor {
         }
 
         String token = request.getHeader("Authorization");
+        log.info("token: " + token);
         if (token == null || !isValidToken(token)) {
             ResponseVo tokenIsInvalidOrExpired = ResponseVo.tokenError();
             response.getWriter().write(objectMapper.writeValueAsString(tokenIsInvalidOrExpired));

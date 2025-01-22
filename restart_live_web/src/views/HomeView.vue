@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import TheWelcome from '../components/TheWelcome.vue'
+import TopSection from '@/components/home/TopSection.vue'
 </script>
 
 <template>
-  <main>
-    <TheWelcome />
-  </main>
+  <TopSection />
 </template>
+
+<style scoped></style>

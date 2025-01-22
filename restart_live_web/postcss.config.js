@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   plugins: {
     'postcss-pxtorem': {
       rootValue: 16, // 1rem = 16px

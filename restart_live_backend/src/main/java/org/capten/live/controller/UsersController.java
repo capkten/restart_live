@@ -65,4 +65,14 @@ public class UsersController {
             default -> throw new IllegalStateException(String.valueOf(updatePass.code()));
         };
     }
+
+    @GetMapping("/config")
+    public ResponseVo getConfig(HttpServletRequest request) {
+        ServiceResDto configDto = usersService.getUserConfig(request.getHeader(UsersBo.TOKEN_MSG));
+        return switch (configDto.code()) {
+            case UsersBo.USER_INFO_SUCCESS -> ResponseVo.success(configDto.data());
+            case UsersBo.USER_NOT_FOUND -> ResponseVo.error(UsersBo.LOGIN_USER_NOT_FOUND_MSG);
+            default -> throw new IllegalStateException(String.valueOf(configDto.code()));
+        };
+    }
 }

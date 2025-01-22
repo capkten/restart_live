@@ -2,6 +2,7 @@ package org.capten.live.config;
 
 import org.capten.live.interceptor.TokenInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -13,6 +14,9 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Autowired
     private TokenInterceptor tokenInterceptor;
+
+    @Value("${static.file.location}")
+    private String staticFileLocation;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
@@ -32,7 +36,8 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/static/**")
-                .addResourceLocations("classpath:/static/")
+                .addResourceLocations("file:" + staticFileLocation)
                 .setCachePeriod(3600);
     }
+
 }

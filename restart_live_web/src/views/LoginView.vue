@@ -89,10 +89,10 @@ const handleSubmit = async () => {
 
     // 登录成功，保存token
     if (res) {
-      console.log('login res:', res)
-      localStorage.setItem('token', res)
+      console.log('login res:', res.data.data)
+      localStorage.setItem('token', res.data.data)
     }
-    console.log('localstorage token:', localStorage.getItem('token'))
+    // console.log('localstorage token:', res.data.data)
     // 显示成功消息
     ElMessage({
       message: '登录成功',

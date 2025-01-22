@@ -1,7 +1,7 @@
 import axios from 'axios'
 import type { AxiosInstance, AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios'
 
-interface ResponseData<T = any> {
+interface ResponseData<T = Record<string, unknown>> {
   code: number
   msg: string
   data?: T
@@ -21,8 +21,13 @@ request.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     // 从 localStorage 获取 token
     const token = localStorage.getItem('token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+    console.log('[Request Interceptor] URL:', config.url)
+    console.log('[Request Interceptor] Token exists:', !!token)
+
+    // 排除登录和注册接口
+    if (token && !config.url?.includes('/login') && !config.url?.includes('/register')) {
+      config.headers.Authorization = `${token}`
+      console.log('[Request Interceptor] Added Authorization header')
     }
 
     // 如果是 FormData，设置对应的 Content-Type
@@ -33,7 +38,7 @@ request.interceptors.request.use(
     return config
   },
   (error: AxiosError) => {
-    console.error('Request error:', error)
+    console.error('[Request Error]', error)
     return Promise.reject(error)
   }
 )
@@ -43,28 +48,36 @@ request.interceptors.response.use(
   (response: AxiosResponse<ResponseData>) => {
     const { data, config } = response
     const url = config.url || ''
+    console.log('[Response Interceptor] URL:', url)
+    console.log('[Response Interceptor] Response:', data)
 
     // 如果code是200，说明请求成功，直接返回数据
     if (data.code === 200) {
-      return data.data
+      console.log('[Response Interceptor] Success response')
+      return response
     }
 
     // 处理401错误码
     if (data.code === 401) {
+      console.log('[Response Interceptor] Received 401 error')
       // 对于登录和注册接口，不需要跳转
       if (!url.includes('/users/login') && !url.includes('/users/register')) {
+        console.log('[Response Interceptor] Not login/register route, removing token and redirecting')
         localStorage.removeItem('token')
-        window.location.href = '/login'
+        // window.location.href = '/login'
+      } else {
+        console.log('[Response Interceptor] Login/register route, skipping redirect')
       }
     }
 
-    // 其他错误码统一处理
-    return Promise.reject(new Error(data.msg || '请求失败'))
+    // 其他错误码，返回错误信息
+    console.log('[Response Interceptor] Other error:', data.msg)
+    return Promise.reject(new Error(data.msg || 'Error'))
   },
   (error: AxiosError) => {
-    // 处理网络错误、超时等
-    const message = error.message || '网络错误'
-    console.error('Request failed:', message)
+    console.error('[Response Error] Full error:', error)
+    console.error('[Response Error] Response data:', error.response?.data)
+    console.error('[Response Error] Request config:', error.config)
     return Promise.reject(error)
   }
 )

@@ -4,14 +4,20 @@ import cn.hutool.crypto.SecureUtil;
 import cn.hutool.jwt.JWT;
 import cn.hutool.jwt.JWTHeader;
 import cn.hutool.jwt.JWTUtil;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import java.security.Key;
 import org.capten.live.dao.UsersDao;
 import org.capten.live.model.Users;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Date;
 
 @Component
 public class UsersBo {
@@ -40,7 +46,7 @@ public class UsersBo {
 
     public static final String TOKEN_MSG = "Authorization";
 
-    private static final byte[] SECURITY_SALT = "capkin".getBytes();
+    private static final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
     private static final String USERNAME_STR = "username";
 
@@ -77,15 +83,18 @@ public class UsersBo {
      * @return
      */
     public String getToken(String username, String password) {
-        Map<String, Object> map = new HashMap<String, Object>() {
-            private static final long serialVersionUID = 1L;
-            {
-                put(USERNAME_STR, username);
-                put(PASSWORD_STR, password);
-                put(EXPIRE_TIME_STR, System.currentTimeMillis() + EXPIRE_TIME);
-            }
-        };
-        return JWTUtil.createToken(map, SECURITY_SALT);
+
+        long nowMillis = System.currentTimeMillis();
+        long expMillis = nowMillis + EXPIRE_TIME;
+        Date now = new Date(nowMillis);
+        Date exp = new Date(expMillis);
+        return Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(now)
+                .setExpiration(exp)
+                .claim(PASSWORD_STR, password)
+                .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
+                .compact();
     }
 
     /**
@@ -109,19 +118,26 @@ public class UsersBo {
      */
     public boolean checkToken(String token) {
         try {
-            JWTUtil.verify(token, SECURITY_SALT);
-            final JWT jwt = JWTUtil.parseToken(token);
-            jwt.getHeader(JWTHeader.TYPE);
-            String payload = (String) jwt.getPayload(EXPIRE_TIME_STR);
-            return Long.parseLong(payload) >= System.currentTimeMillis();
+            Jwts.parserBuilder()
+                .setSigningKey(SECRET_KEY)
+                .build()
+                .parseClaimsJws(token);
+            return true;
         } catch (Exception e) {
             return false;
         }
     }
 
     public String getUserNameByToken(String token) {
-        final JWT jwt = JWTUtil.parseToken(token);
-        jwt.getHeader(JWTHeader.TYPE);
-        return (String) jwt.getPayload(USERNAME_STR);
+        try {
+            return Jwts.parserBuilder()
+                .setSigningKey(SECRET_KEY)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
