@@ -100,4 +100,12 @@ public interface ConfigMapper {
      * @return
      */
     Config getConfigByUserName(String username);
+
+    /**
+     * update icon by username
+     * @param icon
+     * @param username
+     * @return
+     */
+    int updateIconByUsername(@Param("icon") String icon,@Param("username") String username);
 }

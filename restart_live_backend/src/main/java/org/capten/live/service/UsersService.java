@@ -1,6 +1,7 @@
 package org.capten.live.service;
 
 import org.capten.live.domain.dto.ServiceResDto;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface UsersService {
     /**
@@ -18,4 +19,8 @@ public interface UsersService {
     public ServiceResDto updatePassword(String username, String password, String token);
 
     public ServiceResDto getUserConfig(String token);
+
+    public ServiceResDto updateIcon(String icon, String header);
+
+    ServiceResDto updateBackgroundImage(MultipartFile file, String token);
 }

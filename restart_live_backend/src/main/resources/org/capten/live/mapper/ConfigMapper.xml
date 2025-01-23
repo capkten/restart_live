@@ -277,4 +277,13 @@
     where
         uid = (select id from public.users where username = #{username})
   </select>
+
+  <update id="updateIconByUsername">
+    update
+        config
+    set
+        top_bg_icon = #{icon}
+    where
+        uid = (select id from public.users where username = #{username})
+  </update>
 </mapper>

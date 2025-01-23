@@ -73,6 +73,14 @@ public class UsersBo {
 
     public static final String USER_CHANGE_PASSWORD_FAIL_MSG = "change password fail";
 
+    public static final int USER_CHANGE_BG_FAIL_TYPE_ERR = 110;
+
+    public static final String USER_CHANGE_BG_FAIL_TYPE_MSG = "change background image fail,because file is not img";
+
+    public static final int USER_CHANGE_BG_FILE_SIZE_ERR = 111;
+
+    public static final String USER_CHANGE_BG_FILE_SIZE_MSG = "change background image fail,because file size is too large, file should be lower 5MB";
+
     @Autowired
     private UsersDao usersDao;
 
