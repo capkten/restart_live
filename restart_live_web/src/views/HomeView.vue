@@ -59,7 +59,7 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.top-section {
-  background-color: pink;
+.user-section{
+  width: 100%;
 }
 </style>

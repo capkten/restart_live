@@ -3,10 +3,13 @@
 
 <template>
   <div class="user-section">
-    123123
+
   </div>
 </template>
 
 <style scoped>
+.user-section {
 
+  padding: 0 12.5%;
+}
 </style>

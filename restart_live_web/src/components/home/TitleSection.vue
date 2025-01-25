@@ -20,9 +20,9 @@ const username = computed(() => userStore.userInfo?.username || '')
 
 <style scoped>
 .title-section {
-  padding: 40px 20px;
-  text-align: right;
-  padding-right: 15%;
+  padding: 40px 0;
+  text-align: left;
+  padding-left: 12.5%; /* 1/8 = 12.5% */
 }
 
 .title {
@@ -40,7 +40,7 @@ const username = computed(() => userStore.userInfo?.username || '')
     font-size: 32px;
   }
   .title-section {
-    padding-right: 10%;
+    padding-left: 8%; /* 稍微减少移动端的左边距 */
   }
 }
 </style>
