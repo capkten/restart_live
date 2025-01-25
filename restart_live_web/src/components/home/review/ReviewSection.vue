@@ -29,53 +29,54 @@ const reviewData = ref<ReviewData>({
       <div class="header-divider"></div>
     </div>
     <div class="review-content">
-      <div class="review-card" :class="{ 'pink-theme': true }">
-        <div class="card-header">
-          日记
-          <el-tag size="small" type="danger" class="count-tag">{{ reviewData.daily[0].count }}</el-tag>
-        </div>
-        <div class="card-content">
-          <div class="review-item" v-for="item in reviewData.daily" :key="item.date">
-            <div class="bullet">•</div>
-            <span class="date">@{{ item.date }}</span>
-            <el-tag size="small" class="count">{{ item.count }}</el-tag>
+      <div class="cards-container">
+        <div class="review-card" :class="{ 'pink-theme': true }">
+          <div class="card-header">
+            日记
+            <el-tag size="small" type="danger" class="count-tag">{{ reviewData.daily[0].count }}</el-tag>
           </div>
-          <div class="add-button">
-            <el-button text type="primary">+ 新页面</el-button>
+          <div class="card-content">
+            <div class="review-item" v-for="item in reviewData.daily" :key="item.date">
+              <div class="bullet">•</div>
+              <span class="date">@{{ item.date }}</span>
+              <el-tag size="small" class="count">{{ item.count }}</el-tag>
+            </div>
+            <div class="add-button">
+              <el-button text type="primary">+ 新页面</el-button>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-card" :class="{ 'blue-theme': true }">
+          <div class="card-header">
+            复盘
+            <el-tag size="small" type="info" class="count-tag">{{ reviewData.review[0].count }}</el-tag>
+          </div>
+          <div class="card-content">
+            <div class="add-button">
+              <el-button text type="primary">+ 新页面</el-button>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-card" :class="{ 'yellow-theme': true }">
+          <div class="card-header">
+            灵感
+            <el-tag size="small" type="warning" class="count-tag">{{ reviewData.feeling[0].count }}</el-tag>
+          </div>
+          <div class="card-content">
+            <div class="review-item" v-for="item in reviewData.feeling" :key="item.date">
+              <span class="emoji">😊</span>
+              <span class="date">@{{ item.date }}</span>
+              <div class="item-content">{{ item.content }}</div>
+            </div>
+            <div class="add-button">
+              <el-button text type="primary">+ 新页面</el-button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="review-card" :class="{ 'blue-theme': true }">
-        <div class="card-header">
-          复盘
-          <el-tag size="small" type="info" class="count-tag">{{ reviewData.review[0].count }}</el-tag>
-        </div>
-        <div class="card-content">
-          <div class="add-button">
-            <el-button text type="primary">+ 新页面</el-button>
-          </div>
-        </div>
-      </div>
-
-      <div class="review-card" :class="{ 'yellow-theme': true }">
-        <div class="card-header">
-          灵感
-          <el-tag size="small" type="warning" class="count-tag">{{ reviewData.feeling[0].count }}</el-tag>
-        </div>
-        <div class="card-content">
-          <div class="review-item" v-for="item in reviewData.feeling" :key="item.date">
-            <span class="emoji">😊</span>
-            <span class="date">@{{ item.date }}</span>
-            <div class="item-content">{{ item.content }}</div>
-          </div>
-          <div class="add-button">
-            <el-button text type="primary">+ 新页面</el-button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 添加新分类的按钮 -->
       <div class="add-category">
         <el-button class="add-btn" text>
           <el-icon class="add-icon"><Plus /></el-icon>
@@ -126,12 +127,38 @@ const reviewData = ref<ReviewData>({
 .review-content {
   padding: 20px;
   display: flex;
-  flex-direction: row;
   gap: 20px;
+  overflow: hidden;
+}
+
+.cards-container {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  flex: 1;
+}
+
+.cards-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.cards-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.cards-container::-webkit-scrollbar-thumb {
+  background: #dcdfe6;
+  border-radius: 4px;
+}
+
+.cards-container::-webkit-scrollbar-thumb:hover {
+  background: #c0c4cc;
 }
 
 .review-card {
-  flex: 1;
+  flex: 0 0 340px;
   background-color: white;
   border-radius: 8px;
   padding: 16px;
@@ -157,6 +184,7 @@ const reviewData = ref<ReviewData>({
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 16px;
+  white-space: nowrap;
 }
 
 .count-tag {
@@ -172,9 +200,11 @@ const reviewData = ref<ReviewData>({
 .review-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   color: #666;
   font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .bullet {
@@ -183,12 +213,16 @@ const reviewData = ref<ReviewData>({
 
 .date {
   color: #666;
+  flex-shrink: 0;
 }
 
 .item-content {
   margin-top: 4px;
   padding-left: 24px;
   color: #333;
+  white-space: normal;
+  word-break: break-all;
+  min-width: 0;
 }
 
 .add-button {
@@ -201,13 +235,13 @@ const reviewData = ref<ReviewData>({
 }
 
 .add-category {
+  flex: 0 0 80px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   gap: 8px;
   padding-top: 16px;
-  width: 80px;
 }
 
 .add-btn {
