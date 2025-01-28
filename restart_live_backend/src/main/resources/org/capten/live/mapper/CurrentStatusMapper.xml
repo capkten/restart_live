@@ -315,4 +315,12 @@
       version = #{version,jdbcType=INTEGER}
     where id = #{id,jdbcType=OTHER}
   </update>
+
+  <select id="getCurrentStatusByUsername" resultType="org.capten.live.model.CurrentStatus">
+    select
+    <include refid="Base_Column_List" />
+    from  public.current_status
+    where user_id = (select id from public.users where username = #{userNameByToken})
+    and is_delete = false
+  </select>
 </mapper>

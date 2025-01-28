@@ -81,6 +81,14 @@ public class UsersBo {
 
     public static final String USER_CHANGE_BG_FILE_SIZE_MSG = "change background image fail,because file size is too large, file should be lower 5MB";
 
+    public static final int USER_CURRENT_STATUS = 120;
+
+    public static final String USER_CURRENT_STATUS_MSG = "get current status success";
+
+    public static final int USER_CURRENT_STATUS_ERR = 121;
+
+    public static final String USER_CURRENT_STATUS_ERR_MSG = "get current status fail";
+
     @Autowired
     private UsersDao usersDao;
 

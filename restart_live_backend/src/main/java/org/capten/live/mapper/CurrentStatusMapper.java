@@ -93,4 +93,6 @@ public interface CurrentStatusMapper {
      * @mbg.generated Wed Jan 22 22:27:35 CST 2025
      */
     int updateByPrimaryKey(CurrentStatus row);
+
+    List<CurrentStatus> getCurrentStatusByUsername(String userNameByToken);
 }
