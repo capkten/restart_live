@@ -323,4 +323,22 @@
     where user_id = (select id from public.users where username = #{userNameByToken})
     and is_delete = false
   </select>
+
+  <update id="updateIsDeleteByIds">
+    update public.current_status
+    set is_delete = true
+    where id in
+    <foreach collection="ids" item="id" open="(" separator="," close=")">
+      #{id}
+    </foreach>
+  </update>
+
+  <update id="updateCurrentStatusList">
+    <foreach collection="currentStatusList" item="item" separator=";">
+      UPDATE current_status
+      SET status = #{item.status},  <!-- 假设status是需要更新的一个字段 -->
+      other_field = #{item.otherField}  <!-- 假设otherField是需要更新的另一个字段 -->
+      WHERE id = #{item.id}
+    </foreach>
+  </update>
 </mapper>

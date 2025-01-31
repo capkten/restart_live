@@ -1,6 +1,7 @@
 package org.capten.live.mapper;
 
 import java.util.List;
+
 import org.apache.ibatis.annotations.Param;
 import org.capten.live.model.CurrentStatus;
 import org.capten.live.model.CurrentStatusExample;
@@ -95,4 +96,9 @@ public interface CurrentStatusMapper {
     int updateByPrimaryKey(CurrentStatus row);
 
     List<CurrentStatus> getCurrentStatusByUsername(String userNameByToken);
+
+    int updateIsDeleteByIds(@Param("ids") List<Object> ids);
+
+
+    int updateCurrentStatusList(@Param("currentStatusList") List<CurrentStatus> currentStatusList);
 }

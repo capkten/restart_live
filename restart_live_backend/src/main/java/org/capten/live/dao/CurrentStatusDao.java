@@ -17,4 +17,12 @@ public class CurrentStatusDao {
     public List<CurrentStatus> getCurrentStatus(String userNameByToken) {
         return currentStatusMapper.getCurrentStatusByUsername(userNameByToken);
     }
+
+    public int removeIds(List<Object> removeIds) {
+        return currentStatusMapper.updateIsDeleteByIds(removeIds);
+    }
+
+    public int updateCurrentStatus(List<CurrentStatus> currentStatusList) {
+        return currentStatusMapper.updateCurrentStatusList(currentStatusList);
+    }
 }
