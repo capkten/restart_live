@@ -100,5 +100,7 @@ public interface CurrentStatusMapper {
     int updateIsDeleteByIds(@Param("ids") List<Object> ids);
 
 
-    int updateCurrentStatusList(@Param("currentStatusList") List<CurrentStatus> currentStatusList);
+    int updateCurrentStatusList(@Param("list") List<CurrentStatus> list);
+
+    int insertSelectiveList(@Param("list") List<CurrentStatus> list);
 }

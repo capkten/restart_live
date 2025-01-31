@@ -1,5 +1,23 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
+import { ElMessage } from 'element-plus'
+import request from '@/utils/request'
+
+interface StatusItem {
+  id: string
+  userId: string
+  content: string
+  createTime: string
+  updateTime: string
+  isDelete: boolean
+  version: number
+}
+
+interface ApiResponse {
+  code: number
+  message: string
+  data: StatusItem[]
+}
 
 interface GoalItem {
   text: string
@@ -7,18 +25,18 @@ interface GoalItem {
 }
 
 interface Status {
-  current: string[]
+  current: StatusItem[]
   goals: GoalItem[]
 }
 
+interface SaveResponse {
+  code: number
+  message: string
+  data: null
+}
+
 const status = ref<Status>({
-  current: [
-    '拖延症',
-    '情绪内耗',
-    '习惯性熬夜',
-    '控制不了食欲',
-    '专业技术停滞'
-  ],
+  current: [],
   goals: [
     { text: '克服拖延症', completed: false },
     { text: '保持情绪稳定', completed: false },
@@ -29,6 +47,30 @@ const status = ref<Status>({
   ]
 })
 
+// 获取状态列表
+const fetchStatusList = async () => {
+  try {
+    const response = await request<ApiResponse>({
+      url: '/status/all',
+      method: 'GET'
+    })
+
+    if (response.code === 200) {
+      status.value.current = response.data.filter(item => !item.isDelete)
+    } else {
+      ElMessage.error(response.message)
+    }
+  } catch (error) {
+    ElMessage.error('获取状态列表失败，请稍后重试')
+    console.error('获取状态列表失败:', error)
+  }
+}
+
+// 组件挂载时获取状态列表
+onMounted(() => {
+  fetchStatusList()
+})
+
 const handleKeyDown = (event: KeyboardEvent, type: 'current' | 'goals', index: number) => {
   const target = event.target as HTMLElement
   const text = target.textContent || ''
@@ -36,17 +78,28 @@ const handleKeyDown = (event: KeyboardEvent, type: 'current' | 'goals', index: n
   if (event.key === 'Enter') {
     event.preventDefault()
     if (type === 'current') {
-      status.value.current.splice(index + 1, 0, '')
+      status.value.current.splice(index + 1, 0, {
+        id: '',
+        userId: '',
+        content: '',
+        createTime: new Date().toISOString(),
+        updateTime: new Date().toISOString(),
+        isDelete: false,
+        version: 1
+      })
     } else {
       status.value.goals.splice(index + 1, 0, { text: '', completed: false })
     }
 
-    setTimeout(() => {
-      const nextElement = target.parentElement?.parentElement?.nextElementSibling?.querySelector('[contenteditable]')
+    // 修改为使用 nextTick 和更精确的选择器
+    nextTick(() => {
+      const container = type === 'current' ? '.status-list' : '.goals-list'
+      const items = document.querySelectorAll(`${container} [contenteditable]`)
+      const nextElement = items[index + 1] as HTMLElement
       if (nextElement) {
-        ;(nextElement as HTMLElement).focus()
+        nextElement.focus()
       }
-    }, 0)
+    })
   } else if (event.key === 'Backspace' && text === '') {
     event.preventDefault()
     if (type === 'current') {
@@ -72,7 +125,10 @@ const updateContent = (type: 'current' | 'goals', index: number, event: Event) =
   const target = event.target as HTMLElement
   const text = target.textContent || ''
   if (type === 'current') {
-    status.value.current[index] = text
+    status.value.current[index].content = text
+    if (event.type === 'blur') {
+      saveStatusList()
+    }
   } else {
     status.value.goals[index].text = text
   }
@@ -81,20 +137,82 @@ const updateContent = (type: 'current' | 'goals', index: number, event: Event) =
 const toggleGoal = (index: number) => {
   status.value.goals[index].completed = !status.value.goals[index].completed
 }
+
+// 添加第一行数据
+const handleAreaDblClick = (type: 'current' | 'goals') => {
+  if (type === 'current' && status.value.current.length === 0) {
+    status.value.current.push({
+      id: '',
+      userId: '',
+      content: '',
+      createTime: new Date().toISOString(),
+      updateTime: new Date().toISOString(),
+      isDelete: false,
+      version: 1
+    })
+    // 等待 DOM 更新后聚焦到新创建的输入框
+    setTimeout(() => {
+      const element = document.querySelector('.current-status [contenteditable]')
+      if (element) {
+        ;(element as HTMLElement).focus()
+      }
+    }, 0)
+  } else if (type === 'goals' && status.value.goals.length === 0) {
+    status.value.goals.push({ text: '', completed: false })
+    setTimeout(() => {
+      const element = document.querySelector('.goal-status [contenteditable]')
+      if (element) {
+        ;(element as HTMLElement).focus()
+      }
+    }, 0)
+  }
+}
+
+// 保存状态列表
+const saveStatusList = async () => {
+  try {
+    const response = await request<SaveResponse>({
+      url: '/status/change',
+      method: 'POST',
+      data: status.value.current
+    })
+
+    if (response.code !== 200) {
+      ElMessage.error(response.message)
+    }
+  } catch (error) {
+    ElMessage.error('保存失败，请稍后重试')
+    console.error('保存状态列表失败:', error)
+  }
+}
+
+// 添加组件失焦处理
+const handleComponentBlur = () => {
+  if (status.value.current.length > 0) {
+    saveStatusList()
+  }
+}
 </script>
 
 <template>
-  <div class="status-container">
+  <div
+    class="status-container"
+    @blur="handleComponentBlur"
+    tabindex="-1"
+  >
     <el-card class="status-card current-status">
       <template #header>
         <div class="card-header">
           <span class="header-title">当前现状</span>
         </div>
       </template>
-      <ul class="status-list">
+      <ul
+        class="status-list"
+        @dblclick="handleAreaDblClick('current')"
+      >
         <li
           v-for="(item, index) in status.current"
-          :key="index"
+          :key="item.id || index"
           class="editable-item"
         >
           <span
@@ -102,7 +220,11 @@ const toggleGoal = (index: number) => {
             @keydown="(e) => handleKeyDown(e, 'current', index)"
             @input="(e) => updateContent('current', index, e)"
             @blur="(e) => updateContent('current', index, e)"
-          >{{ item }}</span>
+          >{{ item.content }}</span>
+        </li>
+        <!-- 添加空状态提示 -->
+        <li v-if="status.current.length === 0" class="empty-tip">
+          双击添加内容
         </li>
       </ul>
     </el-card>
@@ -113,7 +235,10 @@ const toggleGoal = (index: number) => {
           <span class="header-title">终极目标</span>
         </div>
       </template>
-      <div class="goals-list">
+      <div
+        class="goals-list"
+        @dblclick="handleAreaDblClick('goals')"
+      >
         <div
           v-for="(goal, index) in status.goals"
           :key="index"
@@ -133,6 +258,10 @@ const toggleGoal = (index: number) => {
             >{{ goal.text }}</span>
           </div>
         </div>
+        <!-- 添加空状态提示 -->
+        <div v-if="status.goals.length === 0" class="empty-tip">
+          双击添加内容
+        </div>
       </div>
     </el-card>
   </div>
@@ -142,6 +271,7 @@ const toggleGoal = (index: number) => {
 .status-container {
   display: flex;
   gap: 20px;
+  outline: none;
 }
 
 .status-card {
@@ -314,5 +444,18 @@ const toggleGoal = (index: number) => {
   line-height: 24px; /* 设置行高与复选框一致 */
   min-height: 24px;
   padding: 0; /* 移除内边距 */
+}
+
+.empty-tip {
+  color: #909399;
+  font-size: 14px;
+  text-align: center;
+  padding: 20px 0;
+  cursor: pointer;
+}
+
+.status-list, .goals-list {
+  min-height: 100px; /* 确保空状态时有足够的点击区域 */
+  cursor: pointer;
 }
 </style>

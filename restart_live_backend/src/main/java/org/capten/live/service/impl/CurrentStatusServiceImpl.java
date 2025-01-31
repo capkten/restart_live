@@ -1,5 +1,6 @@
 package org.capten.live.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.capten.live.dao.CurrentStatusDao;
 import org.capten.live.domain.dto.ServiceResDto;
 import org.capten.live.model.CurrentStatus;
@@ -7,11 +8,15 @@ import org.capten.live.service.CurrentStatusService;
 import org.capten.live.service.bo.UsersBo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.logging.Logger;
 
+@Slf4j
 @Service
 public class CurrentStatusServiceImpl implements CurrentStatusService {
 
@@ -20,6 +25,8 @@ public class CurrentStatusServiceImpl implements CurrentStatusService {
 
     @Autowired
     private UsersBo usersBo;
+
+    private Logger log = Logger.getLogger(CurrentStatusServiceImpl.class.getName());
 
     @Override
     public ServiceResDto getCurrentStatus(String token) {
@@ -43,9 +50,18 @@ public class CurrentStatusServiceImpl implements CurrentStatusService {
             case UsersBo.USER_NOT_FOUND, UsersBo.USER_CURRENT_STATUS_ERR: return currentStatus;
             default: break;
         }
-        List<CurrentStatus> currentInStatus = (List<CurrentStatus>) currentStatus.data();
+        try {
+            return executeUpdateCurrentStatus(currentStatusList, userNameByToken);
+        } catch (Exception e) {
+            return new ServiceResDto(UsersBo.USER_CURRENT_STATUS_ERR, null);
+        }
+    }
+
+    @Transactional
+    protected ServiceResDto executeUpdateCurrentStatus(List<CurrentStatus> currentStatusList, String username) {
         List<Object> removeIds = new ArrayList<>();
         // 将currentStatus.data中的，没有在currentStatusList中的id，添加到removeIds中
+        List<CurrentStatus> currentInStatus = currentStatusDao.getCurrentStatus(username);
         currentInStatus.forEach(c -> {
             boolean flag = true;
             for (CurrentStatus currentStatus1 : currentStatusList) {
@@ -58,15 +74,23 @@ public class CurrentStatusServiceImpl implements CurrentStatusService {
                 removeIds.add(c.getId());
             }
         });
-        currentStatusList.forEach(c -> {
-            if (c.getId() == null) {
-                c.setId(UUID.randomUUID());
+        List<CurrentStatus> insertList = new ArrayList<>();
+        List<CurrentStatus> updateList = new ArrayList<>();
+        for (CurrentStatus currentStatus : currentStatusList) {
+            if (currentStatus.getId() == null || currentStatus.getId().toString().isEmpty()){
+                currentStatus.setId(UUID.randomUUID());
+                insertList.add(currentStatus);
+            }else {
+                updateList.add(currentStatus);
             }
-        });
+        }
         int delete = currentStatusDao.removeIds(removeIds);
         if (delete > 0) {
-            int update = currentStatusDao.updateCurrentStatus(currentStatusList);
+            int update = currentStatusDao.updateCurrentStatus(insertList, updateList);
+            if(update > 0) {
+                return new ServiceResDto(UsersBo.USER_CURRENT_STATUS, currentStatusList);
+            }
         }
-        return null;
+        throw new RuntimeException("Failed to update current status");
     }
 }

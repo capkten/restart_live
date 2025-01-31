@@ -36,7 +36,8 @@ public class CurrentStatusController {
         return switch (currentStatusDto.code()) {
             case UsersBo.USER_CURRENT_STATUS ->  ResponseVo.success(currentStatusDto.data());
             case UsersBo.USER_CURRENT_STATUS_ERR -> ResponseVo.error(UsersBo.USER_CURRENT_STATUS_ERR_MSG);
-            case UsersBo.USER_NOT_FOUND -> ResponseVo.error()
-        }
+            case UsersBo.USER_NOT_FOUND -> ResponseVo.error(UsersBo.LOGIN_USER_NOT_FOUND_MSG);
+            default ->  ResponseVo.error("unknown error");
+        };
     }
 }
