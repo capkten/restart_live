@@ -1,14 +1,10 @@
 package org.capten.live.dao;
 
 import org.capten.live.model.Config;
-import org.capten.live.model.ConfigExample;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.capten.live.mapper.ConfigMapper;
-
-import java.util.List;
-import java.util.UUID;
 
 @Component
 public class ConfigDao {
@@ -25,9 +21,8 @@ public class ConfigDao {
     @Value("${static.default.icon}")
     private String defaultTopBgIcon;
 
-    public boolean createBaseConfig(Object id) {
+    public boolean createBaseConfig(String id) {
         Config config = new Config();
-        config.setId(UUID.randomUUID());
         config.setUid(id);
         config.setTopBgImg(baseUrl + defaultTopBgImg);
         config.setTopBgIcon(defaultTopBgIcon);
@@ -35,18 +30,21 @@ public class ConfigDao {
     }
 
     public Config getConfigByUserName(String username) {
-        return configMapper.getConfigByUserName(username);
+//        return configMapper.getConfigByUserName(username);
+        return new Config();
     }
 
     public boolean setIconByUsername(String icon, String username) {
-        return configMapper.updateIconByUsername(icon, username) > 0;
+//        return configMapper.updateIconByUsername(icon, username) > 0;
+        return true;
     }
 
     public boolean setBgImgByUid(Object uid, String httpFilePath) {
-        Config config = new Config();
-        config.setTopBgImg(httpFilePath);
-        ConfigExample configExample = new ConfigExample();
-        configExample.createCriteria().andUidEqualTo(uid);
-        return configMapper.updateByExampleSelective(config, configExample) > 0;
+//        Config config = new Config();
+//        config.setTopBgImg(httpFilePath);
+//        ConfigExample configExample = new ConfigExample();
+//        configExample.createCriteria().andUidEqualTo(uid);
+//        return configMapper.updateByExampleSelective(config, configExample) > 0;
+        return true;
     }
 }

@@ -16,7 +16,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Logger;
 
-@Slf4j
 @Service
 public class CurrentStatusServiceImpl implements CurrentStatusService {
 
@@ -77,8 +76,7 @@ public class CurrentStatusServiceImpl implements CurrentStatusService {
         List<CurrentStatus> insertList = new ArrayList<>();
         List<CurrentStatus> updateList = new ArrayList<>();
         for (CurrentStatus currentStatus : currentStatusList) {
-            if (currentStatus.getId() == null || currentStatus.getId().toString().isEmpty()){
-                currentStatus.setId(UUID.randomUUID());
+            if (currentStatus.getId() == null || currentStatus.getId() != null){
                 insertList.add(currentStatus);
             }else {
                 updateList.add(currentStatus);

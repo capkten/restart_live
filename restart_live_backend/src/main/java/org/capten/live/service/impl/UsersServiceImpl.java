@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -73,11 +74,10 @@ public class UsersServiceImpl implements UsersService {
         }
         password = usersBo.getEncryptedPassword(password);
         Users user = new Users();
-        user.setId(UUID.randomUUID());
         user.setUsername(username);
         user.setPassword(password);
-        user.setCreateTime(DateTime.now());
-        user.setUpdateTime(DateTime.now());
+        user.setCreateTime(LocalDateTime.now());
+        user.setUpdateTime(LocalDateTime.now());
         if (usersDao.registerUser(user)) {
             // create user config
             if (configDao.createBaseConfig(user.getId())) {
@@ -109,7 +109,7 @@ public class UsersServiceImpl implements UsersService {
             password = usersBo.getEncryptedPassword(password);
             Users users = usersDao.getUserInfoByUserName(username);
             users.setPassword(password);
-            users.setUpdateTime(DateTime.now());
+            users.setUpdateTime(LocalDateTime.now());
             if (usersDao.updateUser(users)) {
                 return new ServiceResDto(UsersBo.USER_CHANGE_PASSWORD_SUCCESS, null);
             } else {
