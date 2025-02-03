@@ -1,5 +1,6 @@
 package org.capten.live.dao;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.capten.live.mapper.UsersMapper;
 import org.capten.live.model.Users;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,16 +17,8 @@ public class UsersDao {
     private UsersMapper usersMapper;
 
     public Users getUserInfoByUserName(String username) {
-        List<Users> users = usersMapper.selectByMap(new HashMap<String, Object>() {
-            {
-                put("username", username);
-            }
-        });
-        try {
-            return users.getFirst();
-        }catch (NoSuchElementException e){
-            return null;
-        }
+        Users users = usersMapper.selectOne(new QueryWrapper<Users>().eq("username", username));
+        return users;
     }
 
     public boolean registerUser(Users user) {

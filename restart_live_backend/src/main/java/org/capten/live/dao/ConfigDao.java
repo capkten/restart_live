@@ -1,10 +1,16 @@
 package org.capten.live.dao;
 
+import com.github.yulichang.query.MPJLambdaQueryWrapper;
+import com.github.yulichang.query.MPJQueryWrapper;
+import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import org.capten.live.model.Config;
+import org.capten.live.model.Users;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.capten.live.mapper.ConfigMapper;
+
+import java.util.List;
 
 @Component
 public class ConfigDao {
@@ -21,7 +27,7 @@ public class ConfigDao {
     @Value("${static.default.icon}")
     private String defaultTopBgIcon;
 
-    public boolean createBaseConfig(String id) {
+    public boolean createBaseConfig(Integer id) {
         Config config = new Config();
         config.setUid(id);
         config.setTopBgImg(baseUrl + defaultTopBgImg);
@@ -30,21 +36,28 @@ public class ConfigDao {
     }
 
     public Config getConfigByUserName(String username) {
-//        return configMapper.getConfigByUserName(username);
-        return new Config();
+        Config config = configMapper.selectJoinOne(Config.class,
+                new MPJLambdaWrapper<Config>()
+                        .selectAll(Config.class)
+                        .leftJoin(Users.class, Users::getId, Config::getUid)
+                        .eq(Users::getUsername, username));
+        return config;
     }
 
     public boolean setIconByUsername(String icon, String username) {
-//        return configMapper.updateIconByUsername(icon, username) > 0;
-        return true;
+        Config config = new Config();
+        config.setTopBgIcon(icon);
+        int i = configMapper.updateJoin(config, new MPJLambdaWrapper<Config>()
+                .leftJoin(Config.class, Config::getUid, Users::getId)
+                .eq(Users::getUsername, username));
+        return i > 0;
     }
 
-    public boolean setBgImgByUid(Object uid, String httpFilePath) {
-//        Config config = new Config();
-//        config.setTopBgImg(httpFilePath);
-//        ConfigExample configExample = new ConfigExample();
-//        configExample.createCriteria().andUidEqualTo(uid);
-//        return configMapper.updateByExampleSelective(config, configExample) > 0;
-        return true;
+    public boolean setBgImgByUid(Integer uid, String httpFilePath) {
+        Config config = new Config();
+        config.setTopBgImg(httpFilePath);
+        config.setUid(uid);
+        int i = configMapper.updateById(config);
+        return i > 0;
     }
 }

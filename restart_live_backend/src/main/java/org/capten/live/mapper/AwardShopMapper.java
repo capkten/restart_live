@@ -1,7 +1,7 @@
 package org.capten.live.mapper;
 
-import com.github.yulichang.base.MPJBaseMapper;
 import org.capten.live.model.AwardShop;
+import com.github.yulichang.base.MPJBaseMapper;
 
 /**
  * <p>

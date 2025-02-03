@@ -2,6 +2,7 @@ package org.capten.live.dao;
 
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import org.apache.catalina.User;
+import org.apache.ibatis.executor.BatchResult;
 import org.capten.live.mapper.CurrentStatusMapper;
 import org.capten.live.model.CurrentStatus;
 import org.capten.live.model.Users;
@@ -19,14 +20,14 @@ public class CurrentStatusDao {
 
     public List<CurrentStatus> getCurrentStatus(String userNameByToken) {
         MPJLambdaWrapper<CurrentStatus> eqWrapper = new MPJLambdaWrapper<CurrentStatus>()
-                .leftJoin(CurrentStatus.class, CurrentStatus::getUserId, Users::getId)
+                .leftJoin(Users.class, Users::getId, CurrentStatus::getUserId)
                 .eq(Users::getUsername, userNameByToken)
                 .selectAll(CurrentStatus.class);
         List<CurrentStatus> currentStatuses = currentStatusMapper.selectJoinList(eqWrapper);
         return currentStatuses;
     }
 
-    public int removeIds(List<String> removeIds) {
+    public int removeIds(List<Integer> removeIds) {
         if (removeIds.isEmpty()) {
             return 1;
         }
@@ -34,18 +35,40 @@ public class CurrentStatusDao {
     }
 
     public int updateCurrentStatus(List<CurrentStatus> insertList, List<CurrentStatus> updateList) {
-//        if (!insertList.isEmpty()) {
-//            if (currentStatusMapper.insertSelectiveList(insertList) <= 0) {
-//                return 0;
-//            }
-//            ;
-//        }
-//        if (!updateList.isEmpty()){
-//            if (currentStatusMapper.updateCurrentStatusList(updateList) <= 0) {
-//                return 0;
-//            }
-//        }
-//        return 1;
-        return 0;
+        List<BatchResult> insertResults = currentStatusMapper.insert(insertList);
+        List<BatchResult> updateResults = currentStatusMapper.updateById(updateList);
+
+        int affectedRows = 0;
+        boolean allOperationsSuccessful = true;
+
+        for (BatchResult result : insertResults) {
+            if (result.getUpdateCounts() == null || result.getUpdateCounts().length == 0) {
+                allOperationsSuccessful = false;
+            } else {
+                for (int count : result.getUpdateCounts()) {
+                    if (count <= 0) {
+                        allOperationsSuccessful = false;
+                    }
+                    affectedRows += count;
+                }
+            }
+        }
+
+        for (BatchResult result : updateResults) {
+            if (result.getUpdateCounts() == null || result.getUpdateCounts().length == 0) {
+                allOperationsSuccessful = false;
+            } else {
+                for (int count : result.getUpdateCounts()) {
+                    if (count <= 0) {
+                        allOperationsSuccessful = false;
+                    }
+                    affectedRows += count;
+                }
+            }
+        }
+
+        // 如果所有操作都成功，返回受影响的行数；否则，可以返回一个特殊值或抛出异常
+        return allOperationsSuccessful ? affectedRows : 0;
     }
+
 }

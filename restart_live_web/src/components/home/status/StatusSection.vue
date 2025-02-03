@@ -4,18 +4,19 @@ import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
 
 interface StatusItem {
-  id: string
-  userId: string
+  id: number
+  userId: number
   content: string
-  createTime: string
-  updateTime: string
+  createTime: number[]
+  updateTime: number[]
   isDelete: boolean
   version: number
+  index: number | null
 }
 
 interface ApiResponse {
   code: number
-  message: string
+  msg: string
   data: StatusItem[]
 }
 
@@ -31,7 +32,7 @@ interface Status {
 
 interface SaveResponse {
   code: number
-  message: string
+  msg: string
   data: null
 }
 
@@ -55,14 +56,30 @@ const fetchStatusList = async () => {
       method: 'GET'
     })
 
-    if (response.code === 200) {
-      status.value.current = response.data.filter(item => !item.isDelete)
+    console.log('API Response data:', response.data) // 添加日志
+    const res = response.data
+    if (res.code === 200) {
+      // 处理 index 为 null 的情况并排序
+      const sortedData = res.data
+        .filter(item => !item.isDelete)
+        .map(item => ({
+          ...item,
+          // 确保 createTime 和 updateTime 是数组
+          createTime: Array.isArray(item.createTime) ? item.createTime : [],
+          updateTime: Array.isArray(item.updateTime) ? item.updateTime : [],
+          index: item.index ?? 0  // 如果 index 为 null 或 undefined，设置为 0
+        }))
+        .sort((a, b) => (a.index || 0) - (b.index || 0))
+
+      console.log('Sorted Data:', sortedData) // 添加日志
+      status.value.current = sortedData
+      console.log('Status Current:', status.value.current) // 添加日志
     } else {
-      ElMessage.error(response.message)
+      ElMessage.error(res.msg)
     }
   } catch (error) {
+    console.error('Response Error:', error) // 添加更详细的错误日志
     ElMessage.error('获取状态列表失败，请稍后重试')
-    console.error('获取状态列表失败:', error)
   }
 }
 
@@ -79,13 +96,14 @@ const handleKeyDown = (event: KeyboardEvent, type: 'current' | 'goals', index: n
     event.preventDefault()
     if (type === 'current') {
       status.value.current.splice(index + 1, 0, {
-        id: '',
-        userId: '',
+        id: 0,
+        userId: 0,
         content: '',
-        createTime: new Date().toISOString(),
-        updateTime: new Date().toISOString(),
+        createTime: [],
+        updateTime: [],
         isDelete: false,
-        version: 1
+        version: 1,
+        index: null
       })
     } else {
       status.value.goals.splice(index + 1, 0, { text: '', completed: false })
@@ -126,9 +144,6 @@ const updateContent = (type: 'current' | 'goals', index: number, event: Event) =
   const text = target.textContent || ''
   if (type === 'current') {
     status.value.current[index].content = text
-    if (event.type === 'blur') {
-      saveStatusList()
-    }
   } else {
     status.value.goals[index].text = text
   }
@@ -142,13 +157,14 @@ const toggleGoal = (index: number) => {
 const handleAreaDblClick = (type: 'current' | 'goals') => {
   if (type === 'current' && status.value.current.length === 0) {
     status.value.current.push({
-      id: '',
-      userId: '',
+      id: 0,
+      userId: 0,
       content: '',
-      createTime: new Date().toISOString(),
-      updateTime: new Date().toISOString(),
+      createTime: [],
+      updateTime: [],
       isDelete: false,
-      version: 1
+      version: 1,
+      index: null
     })
     // 等待 DOM 更新后聚焦到新创建的输入框
     setTimeout(() => {
@@ -171,14 +187,19 @@ const handleAreaDblClick = (type: 'current' | 'goals') => {
 // 保存状态列表
 const saveStatusList = async () => {
   try {
+    const dataToSave = status.value.current.map((item, index) => ({
+      ...item,
+      index: index
+    }))
+
     const response = await request<SaveResponse>({
       url: '/status/change',
       method: 'POST',
-      data: status.value.current
+      data: dataToSave
     })
 
-    if (response.code !== 200) {
-      ElMessage.error(response.message)
+    if (response.data.code !== 200) {
+      ElMessage.error(response.data.msg)
     }
   } catch (error) {
     ElMessage.error('保存失败，请稍后重试')
@@ -186,11 +207,26 @@ const saveStatusList = async () => {
   }
 }
 
-// 添加组件失焦处理
-const handleComponentBlur = () => {
-  if (status.value.current.length > 0) {
-    saveStatusList()
+// 修改组件失焦处理，使用防抖来避免频繁保存
+let saveTimeout: NodeJS.Timeout | null = null
+const handleComponentBlur = (event: FocusEvent) => {
+  // 检查是否真的失去焦点到组件外
+  const relatedTarget = event.relatedTarget as HTMLElement
+  if (relatedTarget && event.currentTarget?.contains(relatedTarget)) {
+    return // 如果焦点仍在组件内，不执行保存
   }
+
+  // 清除之前的定时器
+  if (saveTimeout) {
+    clearTimeout(saveTimeout)
+  }
+
+  // 设置新的定时器
+  saveTimeout = setTimeout(() => {
+    if (status.value.current.length > 0) {
+      saveStatusList()
+    }
+  }, 300) // 300ms 的延迟
 }
 </script>
 
@@ -198,6 +234,7 @@ const handleComponentBlur = () => {
   <div
     class="status-container"
     @blur="handleComponentBlur"
+    @focusout="handleComponentBlur"
     tabindex="-1"
   >
     <el-card class="status-card current-status">
@@ -220,9 +257,9 @@ const handleComponentBlur = () => {
             @keydown="(e) => handleKeyDown(e, 'current', index)"
             @input="(e) => updateContent('current', index, e)"
             @blur="(e) => updateContent('current', index, e)"
-          >{{ item.content }}</span>
+            v-text="item.content"
+          ></span>
         </li>
-        <!-- 添加空状态提示 -->
         <li v-if="status.current.length === 0" class="empty-tip">
           双击添加内容
         </li>
@@ -258,7 +295,6 @@ const handleComponentBlur = () => {
             >{{ goal.text }}</span>
           </div>
         </div>
-        <!-- 添加空状态提示 -->
         <div v-if="status.goals.length === 0" class="empty-tip">
           双击添加内容
         </div>

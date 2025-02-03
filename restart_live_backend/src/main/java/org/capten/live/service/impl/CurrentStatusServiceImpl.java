@@ -2,8 +2,10 @@ package org.capten.live.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.capten.live.dao.CurrentStatusDao;
+import org.capten.live.dao.UsersDao;
 import org.capten.live.domain.dto.ServiceResDto;
 import org.capten.live.model.CurrentStatus;
+import org.capten.live.model.Users;
 import org.capten.live.service.CurrentStatusService;
 import org.capten.live.service.bo.UsersBo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,8 @@ public class CurrentStatusServiceImpl implements CurrentStatusService {
     private UsersBo usersBo;
 
     private Logger log = Logger.getLogger(CurrentStatusServiceImpl.class.getName());
+    @Autowired
+    private UsersDao usersDao;
 
     @Override
     public ServiceResDto getCurrentStatus(String token) {
@@ -37,6 +41,7 @@ public class CurrentStatusServiceImpl implements CurrentStatusService {
             List<CurrentStatus> currentStatusList = currentStatusDao.getCurrentStatus(userNameByToken);
             return new ServiceResDto(UsersBo.USER_CURRENT_STATUS, currentStatusList);
         }catch (Exception e) {
+            log.info("Failed to get current status" + e);
             return new ServiceResDto(UsersBo.USER_CURRENT_STATUS_ERR, null);
         }
     }
@@ -58,7 +63,9 @@ public class CurrentStatusServiceImpl implements CurrentStatusService {
 
     @Transactional
     protected ServiceResDto executeUpdateCurrentStatus(List<CurrentStatus> currentStatusList, String username) {
-        List<String> removeIds = new ArrayList<>();
+        Users userInfoByUserName = usersDao.getUserInfoByUserName(username);
+        Integer userId = userInfoByUserName.getId();
+        List<Integer> removeIds = new ArrayList<>();
         // 将currentStatus.data中的，没有在currentStatusList中的id，添加到removeIds中
         List<CurrentStatus> currentInStatus = currentStatusDao.getCurrentStatus(username);
         currentInStatus.forEach(c -> {
@@ -77,6 +84,7 @@ public class CurrentStatusServiceImpl implements CurrentStatusService {
         List<CurrentStatus> updateList = new ArrayList<>();
         for (CurrentStatus currentStatus : currentStatusList) {
             if (currentStatus.getId() == null || currentStatus.getId() != null){
+                currentStatus.setUserId(userId);
                 insertList.add(currentStatus);
             }else {
                 updateList.add(currentStatus);
