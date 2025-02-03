@@ -1,7 +1,10 @@
 package org.capten.live.dao;
 
+import com.github.yulichang.wrapper.MPJLambdaWrapper;
+import org.apache.catalina.User;
 import org.capten.live.mapper.CurrentStatusMapper;
 import org.capten.live.model.CurrentStatus;
+import org.capten.live.model.Users;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,16 +18,19 @@ public class CurrentStatusDao {
     private CurrentStatusMapper currentStatusMapper;
 
     public List<CurrentStatus> getCurrentStatus(String userNameByToken) {
-//        return currentStatusMapper.getCurrentStatusByUsername(userNameByToken);
-        return new ArrayList<>();
+        MPJLambdaWrapper<CurrentStatus> eqWrapper = new MPJLambdaWrapper<CurrentStatus>()
+                .leftJoin(CurrentStatus.class, CurrentStatus::getUserId, Users::getId)
+                .eq(Users::getUsername, userNameByToken)
+                .selectAll(CurrentStatus.class);
+        List<CurrentStatus> currentStatuses = currentStatusMapper.selectJoinList(eqWrapper);
+        return currentStatuses;
     }
 
-    public int removeIds(List<Object> removeIds) {
-//        if (removeIds.isEmpty()) {
-//            return 1;
-//        }
-//        return currentStatusMapper.updateIsDeleteByIds(removeIds);
-        return 0;
+    public int removeIds(List<String> removeIds) {
+        if (removeIds.isEmpty()) {
+            return 1;
+        }
+        return currentStatusMapper.deleteByIds(removeIds);
     }
 
     public int updateCurrentStatus(List<CurrentStatus> insertList, List<CurrentStatus> updateList) {

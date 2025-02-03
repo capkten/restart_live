@@ -276,3 +276,20 @@ org.springframework.beans.factory.BeanDefinitionStoreException: Invalid bean def
 2025-02-03T01:08:42.366+08:00  WARN 68596 --- [restart_live_backend] [main] o.s.w.s.resource.ResourceHandlerUtils    : Appended trailing slash to static resource location: file:/mnt/disk/restart_live/restart_live_backend/files/
 2025-02-03T01:08:42.475+08:00  INFO 68596 --- [restart_live_backend] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 10000 (http) with context path '/'
 2025-02-03T01:08:42.479+08:00  INFO 68596 --- [restart_live_backend] [main] o.c.live.RestartLiveBackendApplication   : Started RestartLiveBackendApplication in 1.467 seconds (process running for 1.756)
+2025-02-03T01:14:58.318+08:00  INFO 68596 --- [restart_live_backend] [SpringApplicationShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2025-02-03T01:14:58.330+08:00  INFO 68596 --- [restart_live_backend] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2025-02-03T08:41:40.307+08:00  INFO 25196 --- [restart_live_backend] [main] o.c.live.RestartLiveBackendApplication   : Starting RestartLiveBackendApplication using Java 23.0.1 with PID 25196 (E:\code\restart_live\restart_live_backend\target\classes started by Capkin in E:\code\restart_live\restart_live_backend)
+2025-02-03T08:41:40.308+08:00  INFO 25196 --- [restart_live_backend] [main] o.c.live.RestartLiveBackendApplication   : No active profile set, falling back to 1 default profile: "default"
+2025-02-03T08:41:40.746+08:00  INFO 25196 --- [restart_live_backend] [main] c.g.y.a.MybatisPlusJoinAutoConfiguration : MPJ SqlSessionFactory bean definition: sqlSessionFactory factoryBeanName: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration factoryMethodName: sqlSessionFactory source: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration.sqlSessionFactory(javax.sql.DataSource)
+2025-02-03T08:41:40.883+08:00  INFO 25196 --- [restart_live_backend] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 10000 (http)
+2025-02-03T08:41:40.893+08:00  INFO 25196 --- [restart_live_backend] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-02-03T08:41:40.893+08:00  INFO 25196 --- [restart_live_backend] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.34]
+2025-02-03T08:41:40.922+08:00  INFO 25196 --- [restart_live_backend] [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-02-03T08:41:40.923+08:00  INFO 25196 --- [restart_live_backend] [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 587 ms
+2025-02-03T08:41:40.984+08:00  INFO 25196 --- [restart_live_backend] [main] c.g.y.a.MybatisPlusJoinAutoConfiguration : mybatis plus join properties config complete
+2025-02-03T08:41:41.024+08:00  INFO 25196 --- [restart_live_backend] [main] c.g.y.a.MybatisPlusJoinAutoConfiguration : mybatis plus join SqlInjector init
+2025-02-03T08:41:41.702+08:00  WARN 25196 --- [restart_live_backend] [main] o.s.w.s.resource.ResourceHandlerUtils    : Appended trailing slash to static resource location: file:/mnt/disk/restart_live/restart_live_backend/files/
+2025-02-03T08:41:41.828+08:00  INFO 25196 --- [restart_live_backend] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 10000 (http) with context path '/'
+2025-02-03T08:41:41.832+08:00  INFO 25196 --- [restart_live_backend] [main] o.c.live.RestartLiveBackendApplication   : Started RestartLiveBackendApplication in 1.76 seconds (process running for 2.111)
+2025-02-03T08:41:48.169+08:00  INFO 25196 --- [restart_live_backend] [SpringApplicationShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2025-02-03T08:41:48.181+08:00  INFO 25196 --- [restart_live_backend] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete

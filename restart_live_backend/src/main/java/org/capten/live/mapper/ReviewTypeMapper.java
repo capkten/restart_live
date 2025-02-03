@@ -1,7 +1,7 @@
 package org.capten.live.mapper;
 
 import org.capten.live.model.ReviewType;
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.github.yulichang.base.MPJBaseMapper;
 
 /**
  * <p>
@@ -11,6 +11,6 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * @author capkin
  * @since 2025-02-03
  */
-public interface ReviewTypeMapper extends BaseMapper<ReviewType> {
+public interface ReviewTypeMapper extends MPJBaseMapper<ReviewType> {
 
 }

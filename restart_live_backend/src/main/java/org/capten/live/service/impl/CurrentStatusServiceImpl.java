@@ -58,7 +58,7 @@ public class CurrentStatusServiceImpl implements CurrentStatusService {
 
     @Transactional
     protected ServiceResDto executeUpdateCurrentStatus(List<CurrentStatus> currentStatusList, String username) {
-        List<Object> removeIds = new ArrayList<>();
+        List<String> removeIds = new ArrayList<>();
         // 将currentStatus.data中的，没有在currentStatusList中的id，添加到removeIds中
         List<CurrentStatus> currentInStatus = currentStatusDao.getCurrentStatus(username);
         currentInStatus.forEach(c -> {

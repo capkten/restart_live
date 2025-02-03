@@ -1,7 +1,7 @@
 package org.capten.live.mapper;
 
+import com.github.yulichang.base.MPJBaseMapper;
 import org.capten.live.model.AwardShop;
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**
  * <p>
@@ -11,6 +11,6 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * @author capkin
  * @since 2025-02-03
  */
-public interface AwardShopMapper extends BaseMapper<AwardShop> {
+public interface AwardShopMapper extends MPJBaseMapper<AwardShop> {
 
 }
