@@ -197,7 +197,7 @@ const saveStatusList = async () => {
       method: 'POST',
       data: dataToSave
     })
-
+    console.log('save data response', response)
     if (response.data.code !== 200) {
       ElMessage.error(response.data.msg)
     }

@@ -10,8 +10,10 @@ import org.capten.live.service.CurrentStatusService;
 import org.capten.live.service.bo.UsersBo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -54,14 +56,9 @@ public class CurrentStatusServiceImpl implements CurrentStatusService {
             case UsersBo.USER_NOT_FOUND, UsersBo.USER_CURRENT_STATUS_ERR: return currentStatus;
             default: break;
         }
-        try {
-            return executeUpdateCurrentStatus(currentStatusList, userNameByToken);
-        } catch (Exception e) {
-            return new ServiceResDto(UsersBo.USER_CURRENT_STATUS_ERR, null);
-        }
+        return executeUpdateCurrentStatus(currentStatusList, userNameByToken);
     }
 
-    @Transactional
     protected ServiceResDto executeUpdateCurrentStatus(List<CurrentStatus> currentStatusList, String username) {
         Users userInfoByUserName = usersDao.getUserInfoByUserName(username);
         Integer userId = userInfoByUserName.getId();
@@ -83,10 +80,16 @@ public class CurrentStatusServiceImpl implements CurrentStatusService {
         List<CurrentStatus> insertList = new ArrayList<>();
         List<CurrentStatus> updateList = new ArrayList<>();
         for (CurrentStatus currentStatus : currentStatusList) {
-            if (currentStatus.getId() == null || currentStatus.getId() != null){
+            if (currentStatus.getId() == null || currentStatus.getId() == 0){
                 currentStatus.setUserId(userId);
+                currentStatus.setId(null);
+                currentStatus.setCreateTime(LocalDateTime.now());
+                currentStatus.setUpdateTime(LocalDateTime.now());
                 insertList.add(currentStatus);
             }else {
+                currentStatus.setUpdateTime(LocalDateTime.now());
+                currentStatus.setCreateTime(null);
+                currentStatus.setVersion(null);
                 updateList.add(currentStatus);
             }
         }
