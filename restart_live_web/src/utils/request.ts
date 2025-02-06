@@ -1,5 +1,6 @@
 import axios from 'axios'
 import type { AxiosInstance, AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios'
+import router from '@/router'
 
 interface ResponseData<T = Record<string, unknown>> {
   code: number
@@ -64,7 +65,7 @@ request.interceptors.response.use(
       if (!url.includes('/users/login') && !url.includes('/users/register')) {
         console.log('[Response Interceptor] Not login/register route, removing token and redirecting')
         localStorage.removeItem('token')
-        // window.location.href = '/login'
+        router.push('/login')
       } else {
         console.log('[Response Interceptor] Login/register route, skipping redirect')
       }

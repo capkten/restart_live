@@ -89,6 +89,10 @@ public class UsersBo {
 
     public static final String USER_CURRENT_STATUS_ERR_MSG = "get current status fail";
 
+    public static final int USER_FINAL_AIM_GET_SUCCESS = 131;
+
+    public static final String USER_FINAL_AIM_GET_SUCCESS_MSG = "get final aim success";
+
     @Autowired
     private UsersDao usersDao;
 

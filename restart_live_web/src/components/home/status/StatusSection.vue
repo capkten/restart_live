@@ -14,20 +14,33 @@ interface StatusItem {
   index: number | null
 }
 
+interface FinalAimItem {
+  id: number
+  userId: number
+  content: string
+  createTime: string
+  updateTime: string
+  isDelete: boolean
+  isFinished: boolean
+  version: number
+  index: number
+}
+
 interface ApiResponse {
   code: number
   msg: string
   data: StatusItem[]
 }
 
-interface GoalItem {
-  text: string
-  completed: boolean
+interface FinalAimResponse {
+  code: number
+  message: string
+  data: FinalAimItem[]
 }
 
 interface Status {
   current: StatusItem[]
-  goals: GoalItem[]
+  goals: FinalAimItem[]
 }
 
 interface SaveResponse {
@@ -36,16 +49,15 @@ interface SaveResponse {
   data: null
 }
 
+interface SaveFinalAimResponse {
+  code: number
+  message: string
+  data: null
+}
+
 const status = ref<Status>({
   current: [],
-  goals: [
-    { text: '克服拖延症', completed: false },
-    { text: '保持情绪稳定', completed: false },
-    { text: '养成看书的好习惯', completed: false },
-    { text: '拒绝熬夜', completed: false },
-    { text: '健康饮食·坚持运动', completed: false },
-    { text: '提升学识', completed: false }
-  ]
+  goals: []
 })
 
 // 获取状态列表
@@ -83,9 +95,37 @@ const fetchStatusList = async () => {
   }
 }
 
-// 组件挂载时获取状态列表
+// 获取终极目标列表
+const fetchFinalAims = async () => {
+  try {
+    const response = await request<FinalAimResponse>({
+      url: '/finalAim/all',
+      method: 'GET'
+    })
+
+    console.log('Final Aims Response:', response.data)
+    const res = response.data
+    if (res.code === 200) {
+      // 处理并排序数据
+      const sortedData = res.data
+        .filter(item => !item.isDelete)
+        .sort((a, b) => (a.index || 0) - (b.index || 0))
+
+      console.log('Sorted Final Aims:', sortedData)
+      status.value.goals = sortedData
+    } else {
+      ElMessage.error(res.message)
+    }
+  } catch (error) {
+    console.error('Final Aims Error:', error)
+    ElMessage.error('获取终极目标列表失败，请稍后重试')
+  }
+}
+
+// 组件挂载时获取状态列表和终极目标列表
 onMounted(() => {
   fetchStatusList()
+  fetchFinalAims()
 })
 
 const handleKeyDown = (event: KeyboardEvent, type: 'current' | 'goals', index: number) => {
@@ -106,7 +146,17 @@ const handleKeyDown = (event: KeyboardEvent, type: 'current' | 'goals', index: n
         index: null
       })
     } else {
-      status.value.goals.splice(index + 1, 0, { text: '', completed: false })
+      status.value.goals.splice(index + 1, 0, {
+        id: 0,
+        userId: 0,
+        content: '',
+        createTime: new Date().toISOString(),
+        updateTime: new Date().toISOString(),
+        isDelete: false,
+        isFinished: false,
+        version: 1,
+        index: index + 1
+      })
     }
 
     // 修改为使用 nextTick 和更精确的选择器
@@ -145,12 +195,13 @@ const updateContent = (type: 'current' | 'goals', index: number, event: Event) =
   if (type === 'current') {
     status.value.current[index].content = text
   } else {
-    status.value.goals[index].text = text
+    status.value.goals[index].content = text
   }
 }
 
 const toggleGoal = (index: number) => {
-  status.value.goals[index].completed = !status.value.goals[index].completed
+  const goal = status.value.goals[index]
+  goal.isFinished = !goal.isFinished
 }
 
 // 添加第一行数据
@@ -174,7 +225,17 @@ const handleAreaDblClick = (type: 'current' | 'goals') => {
       }
     }, 0)
   } else if (type === 'goals' && status.value.goals.length === 0) {
-    status.value.goals.push({ text: '', completed: false })
+    status.value.goals.push({
+      id: 0,
+      userId: 0,
+      content: '',
+      createTime: new Date().toISOString(),
+      updateTime: new Date().toISOString(),
+      isDelete: false,
+      isFinished: false,
+      version: 1,
+      index: 0
+    })
     setTimeout(() => {
       const element = document.querySelector('.goal-status [contenteditable]')
       if (element) {
@@ -207,12 +268,36 @@ const saveStatusList = async () => {
   }
 }
 
+// 保存终极目标列表
+const saveFinalAims = async () => {
+  try {
+    const dataToSave = status.value.goals.map((item, index) => ({
+      ...item,
+      index: index
+    }))
+
+    const response = await request<SaveFinalAimResponse>({
+      url: '/finalAim/change',
+      method: 'POST',
+      data: dataToSave
+    })
+    console.log('save final aims response', response)
+    if (response.data.code !== 200) {
+      ElMessage.error(response.data.message)
+    }
+  } catch (error) {
+    ElMessage.error('保存失败，请稍后重试')
+    console.error('保存终极目标列表失败:', error)
+  }
+}
+
 // 修改组件失焦处理，使用防抖来避免频繁保存
-let saveTimeout: NodeJS.Timeout | null = null
+let saveTimeout: ReturnType<typeof setTimeout> | null = null
 const handleComponentBlur = (event: FocusEvent) => {
   // 检查是否真的失去焦点到组件外
-  const relatedTarget = event.relatedTarget as HTMLElement
-  if (relatedTarget && event.currentTarget?.contains(relatedTarget)) {
+  const relatedTarget = event.relatedTarget as HTMLElement | null
+  const currentTarget = event.currentTarget as HTMLElement
+  if (relatedTarget && currentTarget.contains(relatedTarget)) {
     return // 如果焦点仍在组件内，不执行保存
   }
 
@@ -225,6 +310,9 @@ const handleComponentBlur = (event: FocusEvent) => {
   saveTimeout = setTimeout(() => {
     if (status.value.current.length > 0) {
       saveStatusList()
+    }
+    if (status.value.goals.length > 0) {
+      saveFinalAims()
     }
   }, 300) // 300ms 的延迟
 }
@@ -283,16 +371,17 @@ const handleComponentBlur = (event: FocusEvent) => {
         >
           <div class="goal-content">
             <el-checkbox
-              v-model="goal.completed"
-              :class="{ 'is-checked': goal.completed }"
+              v-model="goal.isFinished"
+              :class="{ 'is-checked': goal.isFinished }"
+              @change="() => toggleGoal(index)"
             />
             <span
               contenteditable="true"
-              :class="{ completed: goal.completed }"
+              :class="{ completed: goal.isFinished }"
               @keydown="(e) => handleKeyDown(e, 'goals', index)"
               @input="(e) => updateContent('goals', index, e)"
               @blur="(e) => updateContent('goals', index, e)"
-            >{{ goal.text }}</span>
+            >{{ goal.content }}</span>
           </div>
         </div>
         <div v-if="status.goals.length === 0" class="empty-tip">
