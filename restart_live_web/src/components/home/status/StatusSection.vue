@@ -200,8 +200,7 @@ const updateContent = (type: 'current' | 'goals', index: number, event: Event) =
 }
 
 const toggleGoal = (index: number) => {
-  const goal = status.value.goals[index]
-  goal.isFinished = !goal.isFinished
+  status.value.goals[index].isFinished = !status.value.goals[index].isFinished
 }
 
 // 添加第一行数据
@@ -370,10 +369,11 @@ const handleComponentBlur = (event: FocusEvent) => {
           class="goal-item"
         >
           <div class="goal-content">
-            <el-checkbox
-              v-model="goal.isFinished"
-              :class="{ 'is-checked': goal.isFinished }"
+            <input
+              type="checkbox"
+              :checked="goal.isFinished"
               @change="() => toggleGoal(index)"
+              class="goal-checkbox"
             />
             <span
               contenteditable="true"
@@ -581,6 +581,13 @@ const handleComponentBlur = (event: FocusEvent) => {
 
 .status-list, .goals-list {
   min-height: 100px; /* 确保空状态时有足够的点击区域 */
+  cursor: pointer;
+}
+
+.goal-checkbox {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
   cursor: pointer;
 }
 </style>
