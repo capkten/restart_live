@@ -93,6 +93,30 @@ public class UsersBo {
 
     public static final String USER_FINAL_AIM_GET_SUCCESS_MSG = "get final aim success";
 
+    public static final int USER_REVIEW_TYPE_SUCCESS = 141;
+
+    public static final String USER_REVIEW_TYPE_SUCCESS_MSG = "get review type success";
+
+    public static final int USER_REVIEW_TYPE_ERR = 142;
+
+    public static final String USER_REVIEW_TYPE_ERR_MSG = "get review type fail";
+
+    public static final int USER_REVIEW_GET_SUCCESS = 151;
+
+    public static final String USER_REVIEW_GET_SUCCESS_MSG = "get review success";
+
+    public static final int USER_REVIEW_GET_ERR = 152;
+
+    public static final String USER_REVIEW_GET_ERR_MSG = "get review fail";
+
+    public static final int USER_REVIEW_ADD_SUCCESS = 161;
+
+    public static final String USER_REVIEW_ADD_SUCCESS_MSG = "add review success";
+
+    public static final int USER_REVIEW_ADD_ERR = 162;
+
+    public static final String USER_REVIEW_ADD_ERR_MSG = "add review fail";
+
     @Autowired
     private UsersDao usersDao;
 

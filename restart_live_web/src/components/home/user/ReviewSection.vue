@@ -1,17 +1,56 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import axios from 'axios'
 
 const { t } = useI18n()
 
-const tabs = [
-  { name: '日记', count: 1 },
-  { name: '复盘', count: 0 },
-  { name: '灵感', count: 1 },
-  { name: '隐藏群组', count: 0 }
-]
+interface ReviewRecord {
+  id: number
+  userId: number
+  content: string
+  createTime: string
+  updateTime: string
+  version: number
+}
 
+interface ReviewType {
+  id: number
+  userId: number
+  name: string
+  sort: number
+  isDelete: boolean
+  createTime: string
+  updateTime: string
+  version: number
+  reviewRecordList: ReviewRecord[]
+}
+
+const reviewTypes = ref<ReviewType[]>([])
 const activeTab = ref(0)
+const loading = ref(false)
+
+const fetchReviewRecords = async () => {
+  try {
+    loading.value = true
+    const response = await axios.get('/reviewRecord/all')
+    if (response.data.code === 200) {
+      reviewTypes.value = response.data.data
+    }
+  } catch (error) {
+    console.error('Failed to fetch review records:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchReviewRecords()
+})
+
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString()
+}
 </script>
 
 <template>
@@ -28,14 +67,14 @@ const activeTab = ref(0)
     </div>
     <div class="tabs">
       <div
-        v-for="(tab, index) in tabs"
-        :key="index"
+        v-for="(type, index) in reviewTypes"
+        :key="type.id"
         class="tab"
         :class="{ active: activeTab === index }"
         @click="activeTab = index"
       >
-        {{ tab.name }}
-        <span class="count">{{ tab.count }}</span>
+        {{ type.name }}
+        <span class="count">{{ type.reviewRecordList.length }}</span>
       </div>
       <div class="new-page">
         <span class="plus">+</span>
@@ -43,7 +82,22 @@ const activeTab = ref(0)
       </div>
     </div>
     <div class="content">
-      <!-- Content will be added based on active tab -->
+      <div v-if="loading" class="loading">
+        加载中...
+      </div>
+      <div v-else-if="reviewTypes.length === 0" class="empty">
+        暂无记录
+      </div>
+      <div v-else class="records">
+        <div
+          v-for="record in reviewTypes[activeTab]?.reviewRecordList"
+          :key="record.id"
+          class="record-item"
+        >
+          <div class="record-content">{{ record.content }}</div>
+          <div class="record-time">{{ formatDate(record.createTime) }}</div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -134,5 +188,39 @@ const activeTab = ref(0)
 
 .content {
   min-height: 200px;
+}
+
+.loading, .empty {
+  text-align: center;
+  padding: 40px;
+  color: #999;
+}
+
+.records {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.record-item {
+  padding: 16px;
+  background: #f8f8f8;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.record-item:hover {
+  background: #f0f0f0;
+  transform: translateY(-2px);
+}
+
+.record-content {
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.record-time {
+  font-size: 12px;
+  color: #999;
 }
 </style>

@@ -37,8 +37,18 @@ public class ReviewRecord implements Serializable {
 
     private LocalDateTime updateTime;
 
+    private LocalDateTime date;
+
     @Version
     private Integer version;
+
+    public LocalDateTime getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDateTime date) {
+        this.date = date;
+    }
 
     public Integer getId() {
         return id;

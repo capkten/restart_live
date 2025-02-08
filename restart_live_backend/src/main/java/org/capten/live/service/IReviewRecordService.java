@@ -1,5 +1,6 @@
 package org.capten.live.service;
 
+import org.capten.live.domain.dto.ServiceResDto;
 import org.capten.live.model.ReviewRecord;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -13,4 +14,9 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IReviewRecordService extends IService<ReviewRecord> {
 
+    ServiceResDto getAllWithRecordType(String token);
+
+    ServiceResDto add(ReviewRecord reviewRecord, String token);
+
+    boolean deleteByIdWithUser(Integer id, String token);
 }
