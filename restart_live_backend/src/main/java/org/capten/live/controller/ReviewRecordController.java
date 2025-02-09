@@ -78,4 +78,20 @@ public class ReviewRecordController {
         return ResponseVo.error("删除失败");
     }
 
+    @PostMapping("/change")
+    public ResponseVo change(@RequestBody Map<String, Object> reviewRecord, HttpServletRequest request) {
+        ReviewRecord reviewRecord1 = new ReviewRecord();
+        reviewRecord1.setId(Integer.parseInt(reviewRecord.get("id").toString()));
+        reviewRecord1.setContent(reviewRecord.get("content").toString());
+        LocalDate localDate = LocalDate.parse(reviewRecord.get("date").toString());
+        reviewRecord1.setDate(localDate.atStartOfDay());
+        ServiceResDto serviceResDto = reviewRecordService.change(reviewRecord1, request.getHeader(UsersBo.TOKEN_MSG));
+        return switch (serviceResDto.code()) {
+            case UsersBo.USER_REVIEW_CHANGE_SUCCESS -> ResponseVo.success(serviceResDto.data());
+            case UsersBo.USER_NOT_FOUND -> ResponseVo.error(UsersBo.LOGIN_USER_NOT_FOUND_MSG);
+            case UsersBo.USER_REVIEW_CHANGE_ERR -> ResponseVo.error(UsersBo.USER_REVIEW_CHANGE_ERR_MSG);
+            default -> throw new IllegalStateException("Unexpected value: " + serviceResDto.code());
+        };
+    }
+
 }

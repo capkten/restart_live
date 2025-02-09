@@ -45,13 +45,18 @@ public class ReviewTypeDao {
     }
 
     public int updateNameByIdWithUsername(Integer id, String name, String username) {
-        ReviewType reviewType = new ReviewType();
+        ReviewType reviewType = reviewTypeMapper.selectJoinOne(new MPJLambdaWrapper<ReviewType>()
+                .eq(ReviewType::getId, id)
+                .leftJoin(Users.class, Users::getId, ReviewType::getUserId)
+                .eq(Users::getUsername, username)
+                .selectAll(ReviewType.class));
+        if (reviewType == null) {
+            return 0;
+        }
+        reviewType = new ReviewType();
         reviewType.setName(name);
         reviewType.setId(id);
         reviewType.setUpdateTime(LocalDateTime.now());
-        int i = reviewTypeMapper.updateJoin(reviewType, new MPJLambdaWrapper<ReviewType>()
-                .leftJoin(Users.class, Users::getId, ReviewType::getUserId)
-                .eq(Users::getUsername, username));
-        return i;
+        return reviewTypeMapper.updateById(reviewType);
     }
 }

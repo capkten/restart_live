@@ -46,6 +46,7 @@ public class UsersBo {
 
     public static final String TOKEN_MSG = "Authorization";
 
+
     private static final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
     private static final String USERNAME_STR = "username";
@@ -116,6 +117,21 @@ public class UsersBo {
     public static final int USER_REVIEW_ADD_ERR = 162;
 
     public static final String USER_REVIEW_ADD_ERR_MSG = "add review fail";
+
+    public static final int USER_REVIEW_CHANGE_SUCCESS = 171;
+
+    public static final String USER_REVIEW_CHANGE_SUCCESS_MSG = "change review success";
+
+    public static final int USER_REVIEW_CHANGE_ERR = 172;
+
+    public static final String USER_REVIEW_CHANGE_ERR_MSG = "change review fail";
+
+    public static final int USER_RUNTIME_TASK_SUCCESS = 201;
+
+    public static final int USER_RUNTIME_TASK_ERR = 202;
+
+    public static final String USER_RUNTIME_TASK_ERR_MSG = "user runtime task operator error";
+
 
     @Autowired
     private UsersDao usersDao;

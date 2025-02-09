@@ -51,6 +51,16 @@ public class RuntimeTask implements Serializable {
 
     private String externalId;
 
+    private Integer experience;
+
+    public Integer getExperience() {
+        return experience;
+    }
+
+    public void setExperience(Integer experience) {
+        this.experience = experience;
+    }
+
     public Integer getId() {
         return id;
     }

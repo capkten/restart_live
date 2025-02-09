@@ -47,6 +47,10 @@ const showNewPage = ref(false)
 const currentTypeId = ref(0)
 const newPageContent = ref('')
 const newPageDate = ref(new Date().toISOString().split('T')[0])
+const editingTypeId = ref<number | null>(null)
+const editingTypeName = ref('')
+const isEditing = ref(false)
+const editingRecord = ref<ReviewRecord | null>(null)
 
 const fetchReviewRecords = async () => {
   try {
@@ -90,15 +94,32 @@ const addNewGroup = async () => {
   }
 }
 
-const openNewPage = (typeId: number) => {
+const openNewPage = (typeId: number, record?: ReviewRecord) => {
   currentTypeId.value = typeId
   showNewPage.value = true
-  newPageContent.value = ''
+
+  if (record) {
+    // 编辑模式
+    isEditing.value = true
+    editingRecord.value = record
+    newPageContent.value = record.content
+    // 将日期数组转换为字符串格式
+    const [year, month, day] = record.date
+    newPageDate.value = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+  } else {
+    // 新增模式
+    isEditing.value = false
+    editingRecord.value = null
+    newPageContent.value = ''
+    newPageDate.value = new Date().toISOString().split('T')[0]
+  }
 }
 
 const closeNewPage = () => {
   showNewPage.value = false
   newPageContent.value = ''
+  isEditing.value = false
+  editingRecord.value = null
 }
 
 const saveNewPage = async () => {
@@ -108,19 +129,34 @@ const saveNewPage = async () => {
   }
 
   try {
-    const response = await request.post('/reviewRecord/add', {
-      rtId: currentTypeId.value,
-      date: newPageDate.value,
-      content: newPageContent.value.trim()
-    })
-    if (response.data.code === 200) {
-      ElMessage.success('添加成功')
-      fetchReviewRecords() // 重新获取列表
-      closeNewPage() // 关闭抽屉
+    if (isEditing.value && editingRecord.value) {
+      // 编辑模式
+      const response = await request.post('/reviewRecord/change', {
+        id: editingRecord.value.id,
+        content: newPageContent.value.trim(),
+        date: newPageDate.value
+      })
+      if (response.data.code === 200) {
+        ElMessage.success('修改成功')
+        fetchReviewRecords()
+        closeNewPage()
+      }
+    } else {
+      // 新增模式
+      const response = await request.post('/reviewRecord/add', {
+        rtId: currentTypeId.value,
+        date: newPageDate.value,
+        content: newPageContent.value.trim()
+      })
+      if (response.data.code === 200) {
+        ElMessage.success('添加成功')
+        fetchReviewRecords()
+        closeNewPage()
+      }
     }
   } catch (error) {
-    console.error('Failed to add review record:', error)
-    ElMessage.error(error instanceof Error ? error.message : '添加失败')
+    console.error('Failed to save review record:', error)
+    ElMessage.error(error instanceof Error ? error.message : '保存失败')
   }
 }
 
@@ -178,8 +214,7 @@ const getTagType = (index: number) => {
 }
 
 const handleEdit = (record: ReviewRecord) => {
-  // TODO: 实现编辑功能
-  console.log('Edit record:', record)
+  openNewPage(record.rtId, record)
 }
 
 const handleDelete = async (record: ReviewRecord) => {
@@ -238,6 +273,37 @@ const handleDeleteType = async (type: ReviewType) => {
     }
   }
 }
+
+const startEditing = (type: ReviewType) => {
+  editingTypeId.value = type.id
+  editingTypeName.value = type.name
+}
+
+const handleTypeNameChange = async () => {
+  if (!editingTypeId.value || !editingTypeName.value.trim()) {
+    editingTypeId.value = null
+    return
+  }
+
+  try {
+    const formData = new FormData()
+    formData.append('id', String(editingTypeId.value))
+    formData.append('name', editingTypeName.value.trim())
+
+    const response = await request.post('/reviewType/change', formData)
+    if (response.data.code === 200) {
+      ElMessage.success('修改成功')
+      fetchReviewRecords()
+    } else {
+      ElMessage.error(response.data.msg || '修改失败')
+    }
+  } catch (error) {
+    console.error('Failed to update type name:', error)
+    ElMessage.error(error instanceof Error ? error.message : '修改失败')
+  } finally {
+    editingTypeId.value = null
+  }
+}
 </script>
 
 <template>
@@ -260,7 +326,21 @@ const handleDeleteType = async (type: ReviewType) => {
         >
           <div class="card-header">
             <div class="card-header-content">
-              {{ type.name }}
+              <template v-if="editingTypeId === type.id">
+                <el-input
+                  v-model="editingTypeName"
+                  size="small"
+                  class="edit-input"
+                  @blur="handleTypeNameChange"
+                  @keyup.enter="handleTypeNameChange"
+                />
+              </template>
+              <template v-else>
+                <span
+                  class="type-name"
+                  @click="startEditing(type)"
+                >{{ type.name }}</span>
+              </template>
               <el-tag size="small" :type="getTagType(index)" class="count-tag">
                 {{ type.reviewRecordList.length }}
               </el-tag>
@@ -363,7 +443,9 @@ const handleDeleteType = async (type: ReviewType) => {
             />
           </div>
           <div class="header-right">
-            <el-button type="primary" @click="saveNewPage">发布</el-button>
+            <el-button type="primary" @click="saveNewPage">
+              {{ isEditing ? '保存' : '发布' }}
+            </el-button>
           </div>
         </div>
         <div class="editor-container">
@@ -710,5 +792,24 @@ const handleDeleteType = async (type: ReviewType) => {
 
 .editor-container :deep(.md-editor-toolbar) {
   border-bottom: 1px solid #e4e7ed;
+}
+
+.type-name {
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.type-name:hover {
+  background-color: rgba(64, 158, 255, 0.1);
+}
+
+.edit-input {
+  width: 120px;
+}
+
+.edit-input :deep(.el-input__inner) {
+  height: 28px;
 }
 </style>

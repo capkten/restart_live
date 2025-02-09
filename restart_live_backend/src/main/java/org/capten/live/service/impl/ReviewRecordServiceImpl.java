@@ -94,4 +94,17 @@ public class ReviewRecordServiceImpl extends ServiceImpl<ReviewRecordMapper, Rev
         String userNameByToken = usersBo.getUserNameByToken(token);
         return reviewRecordDao.deleteByIdWithUsername(id, userNameByToken) > 0;
     }
+
+    @Override
+    public ServiceResDto change(ReviewRecord reviewRecord, String token) {
+        String userNameByToken = usersBo.getUserNameByToken(token);
+        if (userNameByToken == null) {
+            return new ServiceResDto(UsersBo.USER_NOT_FOUND, null);
+        }
+        int res = reviewRecordDao.updateByIdWithUsername(reviewRecord, userNameByToken);
+        if (res > 0) {
+            return new ServiceResDto(UsersBo.USER_REVIEW_CHANGE_SUCCESS, reviewRecord);
+        }
+        return new ServiceResDto(UsersBo.USER_REVIEW_CHANGE_ERR, null);
+    }
 }

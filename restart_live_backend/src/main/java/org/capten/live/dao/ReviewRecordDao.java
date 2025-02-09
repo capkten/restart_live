@@ -9,6 +9,7 @@ import org.capten.live.model.Users;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,5 +46,17 @@ public class ReviewRecordDao {
         }else {
             return 0;
         }
+    }
+
+    public int updateByIdWithUsername(ReviewRecord reviewRecord, String userNameByToken) {
+        reviewRecord.setUpdateTime(LocalDateTime.now());
+        Long count = reviewRecordMapper.selectJoinCount(new MPJLambdaWrapper<ReviewRecord>()
+                .leftJoin(Users.class, Users::getId, ReviewRecord::getUserId)
+                .eq(ReviewRecord::getId, reviewRecord.getId())
+                .eq(Users::getUsername, userNameByToken));
+        if (count == 1) {
+            return reviewRecordMapper.updateById(reviewRecord);
+        }
+        return 0;
     }
 }

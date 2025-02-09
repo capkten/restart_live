@@ -19,4 +19,6 @@ public interface IReviewRecordService extends IService<ReviewRecord> {
     ServiceResDto add(ReviewRecord reviewRecord, String token);
 
     boolean deleteByIdWithUser(Integer id, String token);
+
+    ServiceResDto change(ReviewRecord reviewRecord1, String token);
 }
